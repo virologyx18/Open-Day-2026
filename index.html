@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IISc Virology Database - Master</title>
+    <style>
+        /* --- THEME: DEEP LAB (Clinical, Dark, Precise) --- */
+        body { margin: 0; overflow: hidden; background-color: #020202; font-family: 'Segoe UI', Roboto, sans-serif; color: #b0b0b0; }
+        
+        #canvas-container { width: 100vw; height: 100vh; display: block; background: #000000; }
+        
+        /* UI PANEL */
+        #ui-panel {
+            position: absolute; top: 0; left: 0; width: 380px; height: 100%;
+            background: rgba(12, 12, 16, 0.95); border-right: 1px solid #333;
+            backdrop-filter: blur(15px); padding: 30px; 
+            display: flex; flex-direction: column; z-index: 10;
+            overflow-y: auto; /* SCROLL IF SCREEN IS SHORT */
+        }
+
+        /* SCROLLBAR STYLING */
+        #ui-panel::-webkit-scrollbar { width: 6px; }
+        #ui-panel::-webkit-scrollbar-track { background: #111; }
+        #ui-panel::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 3px; }
+
+        h1 { 
+            color: #e0e0e0; font-size: 22px; text-align: left; margin: 0 0 20px 0; 
+            font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+            border-left: 3px solid #0088ff; padding-left: 15px; flex-shrink: 0;
+        }
+
+        .control-group { margin-bottom: 25px; position: relative; flex-shrink: 0; }
+        label { 
+            display: block; color: #666; font-size: 11px; margin-bottom: 6px; 
+            font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+        }
+        
+        select {
+            width: 100%; padding: 12px 0; background: transparent; color: #fff; 
+            border: none; border-bottom: 1px solid #444; font-size: 15px; 
+            font-family: inherit; cursor: pointer; transition: 0.3s;
+        }
+        select:hover { border-bottom-color: #0088ff; color: #0088ff; }
+        select:focus { outline: none; border-bottom-color: #fff; }
+        select option { background: #111; color: #fff; padding: 10px; }
+
+        /* ANALYZE BUTTON - AT BOTTOM & VISIBLE */
+        #scan-btn {
+            margin-top: auto; padding: 20px; font-size: 14px; font-weight: 700; 
+            background: #0088ff; color: #fff; border: none; border-radius: 4px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3); transition: 0.2s;
+            flex-shrink: 0; margin-bottom: 20px;
+        }
+        #scan-btn:hover { background: #0066cc; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.5); }
+
+        /* VAULT */
+        #vault-panel {
+            position: absolute; top: 0; right: 0; width: 260px; height: 100%;
+            background: rgba(10, 10, 12, 0.6); border-left: 1px solid #222;
+            padding: 30px 20px; overflow-y: auto; pointer-events: none;
+        }
+        #vault-panel * { pointer-events: auto; }
+        #vault-title { color: #444; font-size: 10px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        
+        .vault-item { 
+            padding: 12px; margin-bottom: 5px; border-radius: 4px;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent; background: rgba(255,255,255,0.02);
+        }
+        .vault-item:hover { background: rgba(255,255,255,0.08); border-color: #333; }
+        .v-name { color: #ddd; font-size: 13px; font-weight: 600; }
+        .v-meta { color: #666; font-size: 10px; text-transform: uppercase; margin-top: 3px; }
+
+        /* MODAL */
+        #overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100;
+            justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        #result-box {
+            width: 650px; background: #08080a; border: 1px solid #333;
+            padding: 50px; position: relative; border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            max-height: 90vh; overflow-y: auto; /* Safety scroll */
+        }
+
+        #res-status { font-size: 11px; letter-spacing: 3px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 10px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-match { background: #0088ff; box-shadow: 0 0 10px #0088ff; }
+        .dot-new { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+
+        #res-title { font-size: 42px; color: #fff; margin: 0 0 20px 0; font-weight: 300; letter-spacing: -1px; }
+        #res-desc { color: #999; font-size: 15px; line-height: 1.7; margin-bottom: 30px; font-weight: 300; border-left: 2px solid #333; padding-left: 20px; }
+
+        /* RISK METER */
+        #risk-container { 
+            background: #0e0e10; padding: 20px; border-radius: 4px; margin-bottom: 25px; 
+            border: 1px solid #222; 
+        }
+        .risk-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: flex-end; }
+        .risk-label { color: #666; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
+        .risk-val { color: #fff; font-size: 14px; font-weight: bold; font-family: monospace; }
+        
+        .progress-track { width: 100%; height: 4px; background: #222; margin-top: 5px; position: relative; }
+        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
+        
+        .color-low { background: #444; }
+        .color-med { background: #ffaa00; }
+        .color-high { background: #d00; }
+
+        /* DISCOVERY FORM */
+        #discovery-form { display: none; margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
+        #virus-name-input { 
+            padding: 10px 0; width: 100%; background: transparent; border: none; border-bottom: 1px solid #444;
+            color: #fff; font-size: 20px; font-family: inherit; margin-bottom: 20px;
+        }
+        #virus-name-input:focus { outline: none; border-bottom-color: #ffaa00; }
+        
+        .btn-group { display: flex; gap: 10px; justify-content: flex-end; }
+        button.action-btn { 
+            padding: 10px 25px; background: #1a1a20; color: #fff; border: 1px solid #333; 
+            cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+        }
+        button.action-btn:hover { background: #fff; color: #000; }
+        button.primary { background: #0088ff; border: none; }
+        button.primary:hover { background: #0066cc; color: white; }
+
+        #instructions { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            color: #444; font-size: 11px; letter-spacing: 2px; pointer-events: none;
+        }
+    </style>
+    
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+    </script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <div id="instructions">DRAG TO ROTATE MODEL</div>
+
+    <div id="ui-panel">
+        <h1>Pathogen<br>Analyzer</h1>
+        
+        <div class="control-group">
+            <label>Transmission Vector</label>
+            <select id="trans" onchange="updateModel()">
+                <option value="air">Airborne (Aerosol)</option>
+                <option value="vector">Vector (Arthropod)</option>
+                <option value="contact">Direct Contact</option>
+                <option value="water">Waterborne</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Capsid Morphology</label>
+            <select id="shape" onchange="updateModel()">
+                <option value="icosa">Icosahedral</option>
+                <option value="helical">Helical</option>
+                <option value="complex">Complex (Binary)</option>
+                <option value="bullet">Bullet (Rhabdo)</option>
+                <option value="filament">Filamentous</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Viral Envelope</label>
+            <select id="envelope" onchange="updateModel()">
+                <option value="naked">Non-Enveloped (Naked)</option>
+                <option value="enveloped">Lipid Enveloped</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>Genetic Material</label>
+            <select id="genome" onchange="updateModel()">
+                <option value="dna">DNA (Double Stranded)</option>
+                <option value="rna">RNA (Single Stranded)</option>
+            </select>
+        </div>
+
+        <button id="scan-btn" onclick="analyzeVirus()">RUN SEQUENCE ANALYSIS</button>
+    </div>
+
+    <div id="vault-panel">
+        <div id="vault-title">LOGGED SPECIMENS</div>
+        <div id="vault-list"></div>
+    </div>
+
+    <div id="overlay">
+        <div id="result-box">
+            <div id="res-status"><span class="status-dot" id="dot-indicator"></span><span id="status-text">ANALYSIS COMPLETE</span></div>
+            <h1 id="res-title">VIRUS NAME</h1>
+            <p id="res-desc">Description...</p>
+
+            <div id="risk-container">
+                <div class="risk-row">
+                    <span class="risk-label">PANDEMIC POTENTIAL</span>
+                    <span class="risk-val" id="risk-val-text">--</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" id="risk-bar"></div></div>
+                <div class="risk-row" style="margin-top:15px;">
+                    <span class="risk-label">REPRODUCTION NUMBER (R0)</span>
+                    <span class="risk-val" id="r0-val">--</span>
+                </div>
+                <div class="risk-row" style="margin-top:15px;">
+                    <span class="risk-label">BIOSAFETY LEVEL</span>
+                    <span class="risk-val" id="bsl-val">--</span>
+                </div>
+                <div id="sim-box" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #222; display:none;">
+                    <span class="risk-label" style="color:#888;">STRUCTURAL MATCH</span><br>
+                    <span id="sim-text" style="color:#ffaa00; font-size:12px; margin-top:5px; display:block;"></span>
+                </div>
+            </div>
+
+            <div id="discovery-form">
+                <span class="risk-label" style="color:#ffaa00;">UNCLASSIFIED PATHOGEN DETECTED</span>
+                <input type="text" id="virus-name-input" placeholder="Enter Scientific Designation" maxlength="20">
+                <div class="btn-group">
+                    <button class="action-btn" onclick="closeOverlay()">Discard</button>
+                    <button class="action-btn primary" onclick="saveNewVirus()">Register</button>
+                </div>
+            </div>
+
+            <div class="btn-group" id="match-buttons">
+                <button class="action-btn" onclick="closeOverlay()">Close Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 1. THE MASSIVE DATABASE (64 ENTRIES - RESTORED) ---
+        const VIRUS_DB = [
+            // AIRBORNE
+            { trans: "air", shape: "icosa", env: "naked", genome: "dna", name: "Adenovirus", desc: "Common cold virus. Extremely tough on surfaces." },
+            { trans: "air", shape: "icosa", env: "naked", genome: "rna", name: "Rhinovirus", desc: "The primary cause of the common cold. Mutates fast." },
+            { trans: "air", shape: "icosa", env: "enveloped", genome: "dna", name: "Varicella", desc: "Causes Chickenpox and Shingles. Highly contagious." },
+            { trans: "air", shape: "icosa", env: "enveloped", genome: "rna", name: "SARS-CoV-2", desc: "COVID-19. Large spikes allow entry into lung cells." },
+            { trans: "air", shape: "helical", env: "enveloped", genome: "rna", name: "Influenza A", desc: "Seasonal Flu. Segmented genome causes pandemics." },
+            { trans: "air", shape: "helical", env: "enveloped", genome: "dna", name: "Torque Teno", desc: "Common Anellovirus found in most humans. Usually harmless." },
+            { trans: "air", shape: "bullet", env: "enveloped", genome: "rna", name: "VSV (Aerosol)", desc: "Vesicular Stomatitis Virus. Rare in humans, affects cattle." },
+            { trans: "air", shape: "filament", env: "enveloped", genome: "rna", name: "Ebola (Reston)", desc: "Strain of Ebola that spreads via droplets in monkeys." },
+            { trans: "air", shape: "complex", env: "enveloped", genome: "dna", name: "Smallpox", desc: "Variola major. The deadliest airborne virus in history." },
+            { trans: "air", shape: "icosa", env: "naked", genome: "dna", name: "Parvovirus B19", desc: "Causes 'Fifth Disease' rash in children." },
+            { trans: "air", shape: "helical", env: "naked", genome: "rna", name: "Wheat Streak", desc: "Plant virus. Spread by wind-blown mites/pollen." },
+            { trans: "air", shape: "helical", env: "enveloped", genome: "rna", name: "Measles", desc: "Extremely contagious. Stays in air for 2 hours." },
+            { trans: "air", shape: "helical", env: "naked", genome: "dna", name: "Bocavirus", desc: "Common cause of respiratory infection in kids." },
+            { trans: "air", shape: "complex", env: "naked", genome: "dna", name: "Mycoplasma Phage", desc: "Virus that infects airborne bacteria." },
+            { trans: "air", shape: "bullet", env: "naked", genome: "rna", name: "Orchid Fleck", desc: "Rhabdovirus affecting orchids. Spread by mites." },
+            { trans: "air", shape: "filament", env: "naked", genome: "dna", name: "Rudivirus", desc: "Infects archaea in hot springs (steam transmission)." },
+
+            // VECTOR
+            { trans: "vector", shape: "icosa", env: "enveloped", genome: "rna", name: "Dengue Virus", desc: "Breakbone fever. Spread by Aedes mosquitoes." },
+            { trans: "vector", shape: "icosa", env: "enveloped", genome: "rna", name: "Zika Virus", desc: "Linked to birth defects. Mosquito-borne." },
+            { trans: "vector", shape: "icosa", env: "naked", genome: "rna", name: "Colorado Tick Fever", desc: "Reovirus spread by wood ticks in mountains." },
+            { trans: "vector", shape: "icosa", env: "enveloped", genome: "dna", name: "African Swine Fever", desc: "Spread by ticks to pigs. Huge DNA genome." },
+            { trans: "vector", shape: "helical", env: "enveloped", genome: "rna", name: "Rift Valley Fever", desc: "Affects livestock and humans. Mosquito vector." },
+            { trans: "vector", shape: "bullet", env: "enveloped", genome: "rna", name: "Chandipura Virus", desc: "Spread by sandflies. Deadly to children." },
+            { trans: "vector", shape: "complex", env: "enveloped", genome: "dna", name: "Entomopoxvirus", desc: "Poxvirus that infects insects specifically." },
+            { trans: "vector", shape: "filament", env: "enveloped", genome: "rna", name: "Hartmannella", desc: "Giant virus carried by amoeba vectors." },
+            { trans: "vector", shape: "helical", env: "naked", genome: "rna", name: "Tobacco Rattle", desc: "Plant virus spread by Nematode worms." },
+            { trans: "vector", shape: "icosa", env: "naked", genome: "dna", name: "Densonucleosis", desc: "Parvovirus that infects mosquitoes themselves." },
+            { trans: "vector", shape: "bullet", env: "naked", genome: "rna", name: "Lettuce Necrotic", desc: "Plant Rhabdovirus spread by aphids." },
+            { trans: "vector", shape: "complex", env: "naked", genome: "dna", name: "Wolbachia Phage", desc: "Infects bacteria living inside insects." },
+            { trans: "vector", shape: "filament", env: "naked", genome: "dna", name: "Insect Iridovirus", desc: "Causes insects to turn iridescent blue." },
+            { trans: "vector", shape: "helical", env: "enveloped", genome: "dna", name: "Baculovirus", desc: "Used as a biopesticide to kill caterpillars." },
+            { trans: "vector", shape: "icosa", env: "enveloped", genome: "dna", name: "Asfarvirus", desc: "Only known DNA virus transmitted by arthropods." },
+            { trans: "vector", shape: "helical", env: "naked", genome: "dna", name: "Spiroplasma Phage", desc: "Infects bacteria in insect guts." },
+
+            // WATER
+            { trans: "water", shape: "icosa", env: "naked", genome: "rna", name: "Poliovirus", desc: "Survives in sewage. Causes paralysis." },
+            { trans: "water", shape: "icosa", env: "naked", genome: "rna", name: "Norovirus", desc: "Winter vomiting bug. Highly contagious." },
+            { trans: "water", shape: "icosa", env: "naked", genome: "dna", name: "Adenovirus 41", desc: "Gut-specific strain causing diarrhea." },
+            { trans: "water", shape: "helical", env: "naked", genome: "rna", name: "Tobacco Mosaic", desc: "Can survive in water systems to infect plants." },
+            { trans: "water", shape: "complex", env: "naked", genome: "dna", name: "Cholera Phage", desc: "Kills Cholera bacteria in dirty water." },
+            { trans: "water", shape: "icosa", env: "enveloped", genome: "rna", name: "Hepatitis E", desc: "Waterborne liver infection." },
+            { trans: "water", shape: "icosa", env: "enveloped", genome: "dna", name: "Cyprinid Herpes", desc: "Infects Koi and Carp fish in ponds." },
+            { trans: "water", shape: "helical", env: "enveloped", genome: "rna", name: "Infectious Salmon", desc: "Flu-like virus affecting Atlantic Salmon." },
+            { trans: "water", shape: "bullet", env: "enveloped", genome: "rna", name: "VHS Virus", desc: "Viral Hemorrhagic Septicemia in fish." },
+            { trans: "water", shape: "filament", env: "enveloped", genome: "rna", name: "Ebola (Theoretical)", desc: "Theoretical survival in liquid media." },
+            { trans: "water", shape: "complex", env: "enveloped", genome: "dna", name: "Mimivirus", desc: "Giant virus found in amoebas in cooling towers." },
+            { trans: "water", shape: "helical", env: "naked", genome: "dna", name: "Halovirus", desc: "Infects organisms in high-salt water." },
+            { trans: "water", shape: "bullet", env: "naked", genome: "rna", name: "Orchid Fleck (Water)", desc: "Can spread via hydroponic systems." },
+            { trans: "water", shape: "filament", env: "naked", genome: "dna", name: "Thermoproteus", desc: "Found in boiling water vents." },
+            { trans: "water", shape: "icosa", env: "enveloped", genome: "dna", name: "Ranavirus", desc: "Decimating frog populations worldwide." },
+            { trans: "water", shape: "helical", env: "enveloped", genome: "dna", name: "Nimavirus", desc: "White Spot Syndrome in shrimp." },
+
+            // CONTACT
+            { trans: "contact", shape: "filament", env: "enveloped", genome: "rna", name: "Ebolavirus", desc: "Filovirus. Spreads via blood. Lethal." },
+            { trans: "contact", shape: "bullet", env: "enveloped", genome: "rna", name: "Rabies Virus", desc: "Saliva transmission. 100% fatal if ignored." },
+            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Herpes Simplex", desc: "Oral/Genital lesions. Latent infection." },
+            { trans: "contact", shape: "icosa", env: "naked", genome: "dna", name: "HPV", desc: "Skin-to-skin contact. Causes warts." },
+            { trans: "contact", shape: "icosa", env: "enveloped", genome: "rna", name: "HIV", desc: "Retrovirus. Attacks immune system." },
+            { trans: "contact", shape: "complex", env: "naked", genome: "dna", name: "Bacteriophage T4", desc: "Found on skin. Infects bacteria only." },
+            { trans: "contact", shape: "helical", env: "naked", genome: "rna", name: "Potato X Virus", desc: "Spreads between plants by touching leaves." },
+            { trans: "contact", shape: "icosa", env: "naked", genome: "rna", name: "Enterovirus D68", desc: "Causes respiratory and motor issues." },
+            { trans: "contact", shape: "helical", env: "enveloped", genome: "dna", name: "Epstein-Barr", desc: "Mono / Kissing Disease. Spread by saliva." },
+            { trans: "contact", shape: "bullet", env: "naked", genome: "rna", name: "Mushroom Bacilliform", desc: "Infects mushrooms via direct hyphal contact." },
+            { trans: "contact", shape: "filament", env: "naked", genome: "dna", name: "Lipothrixvirus", desc: "Infects archaea. Extremely heat stable." },
+            { trans: "contact", shape: "complex", env: "enveloped", genome: "dna", name: "Molluscum", desc: "Poxvirus causing skin bumps." },
+            { trans: "contact", shape: "helical", env: "enveloped", genome: "rna", name: "Nipah Virus", desc: "Contact with bats/pigs or fluids." },
+            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Hepatitis B", desc: "Bloodborne. Chronic liver infection." },
+            { trans: "contact", shape: "helical", env: "naked", genome: "dna", name: "Inovirus", desc: "Filamentous phage. Chronic bacterial infection." },
+            { trans: "contact", shape: "bullet", env: "enveloped", genome: "dna", name: "Bacillus Phage", desc: "Unusual DNA rhabdovirus infecting bacteria." }
+        ];
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.04);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.z = 12;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.8;
+
+        // --- LIGHTING ---
+        scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); keyLight.position.set(5, 5, 10); scene.add(keyLight);
+        const rimLight = new THREE.SpotLight(0x0088ff, 8); rimLight.position.set(-10, 5, -10); rimLight.lookAt(0,0,0); scene.add(rimLight);
+        const fillLight = new THREE.PointLight(0xffaa00, 1); fillLight.position.set(5, -10, 5); scene.add(fillLight);
+
+        const virusGroup = new THREE.Group();
+        scene.add(virusGroup);
+
+        // --- MATERIALS ---
+        const matCapsid = new THREE.MeshStandardMaterial({ color: 0x334455, roughness: 0.6, metalness: 0.3 });
+        const matEnv = new THREE.MeshPhysicalMaterial({ 
+            color: 0x88ccff, transparent: true, opacity: 0.25, 
+            transmission: 0.4, roughness: 0.2, clearcoat: 1.0,
+            side: THREE.DoubleSide, depthWrite: false
+        });
+        const matSpike = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.5 });
+        const matDNA = new THREE.MeshBasicMaterial({ color: 0x44ffaa, wireframe: true }); 
+        const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa44, wireframe: true });
+
+        // --- BUILDER (GEOMETRY UPGRADE) ---
+        window.updateModel = function() {
+            while(virusGroup.children.length > 0) virusGroup.remove(virusGroup.children[0]);
+            
+            const shape = document.getElementById('shape').value;
+            const env = document.getElementById('envelope').value;
+            const genome = document.getElementById('genome').value;
+
+            // 1. GENOME
+            const gMat = (genome === 'dna') ? matDNA : matRNA;
+            const coil = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.15, 100, 16), gMat);
+            if(shape==='filament') { coil.scale.set(0.3,0.3,1.5); coil.position.x=0; } 
+            else if(shape!=='complex') { coil.scale.set(0.5,0.5,2.0); coil.rotation.y=Math.PI/2; }
+            if(shape!=='complex') virusGroup.add(coil);
+
+            // 2. CAPSID & ENVELOPE
+            let coreGeo, envGeo;
+
+            if(shape === 'filament') {
+                // 3D SPIRAL CURVE
+                class SpiralCurve extends THREE.Curve {
+                    getPoint(t) { 
+                        const angle = t * Math.PI * 4;
+                        return new THREE.Vector3( (t-0.5)*8, Math.sin(angle)*0.8, Math.cos(angle)*0.8 ); 
+                    }
+                }
+                const path = new SpiralCurve();
+                coreGeo = new THREE.TubeGeometry(path, 64, 0.6, 16, false);
+                envGeo = new THREE.TubeGeometry(path, 64, 0.9, 16, false);
+            }
+            else if(shape === 'complex') {
+                // HEAD + TAIL GROUP
+                const group = new THREE.Group();
+                const h = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1), matCapsid); h.position.y=1.5;
+                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,2.5), matCapsid); t.position.y=-0.5;
+                const l = new THREE.Mesh(new THREE.ConeGeometry(1.5,0.5,6,1,true), matCapsid); l.position.y=-1.8; l.rotation.x=Math.PI;
+                group.add(h); group.add(t); group.add(l);
+                virusGroup.add(group);
+                
+                // COMPOSITE ENVELOPE
+                const envG = new THREE.Group();
+                const eh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6,1), matEnv); eh.position.y=1.5;
+                const et = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 3.0), matEnv); et.position.y=-0.8;
+                envG.add(eh); envG.add(et);
+                if(env==='enveloped') virusGroup.add(envG);
+            }
+            else if(shape === 'icosa') {
+                coreGeo = new THREE.IcosahedronGeometry(1.5, 1);
+                envGeo = new THREE.SphereGeometry(2.0, 64, 64);
+            } else if (shape === 'helical') {
+                coreGeo = new THREE.CylinderGeometry(0.7, 0.7, 4, 32); coreGeo.rotateZ(Math.PI/2);
+                envGeo = new THREE.CylinderGeometry(1.1, 1.1, 4.4, 32); envGeo.rotateZ(Math.PI/2);
+            } else if (shape === 'bullet') {
+                coreGeo = new THREE.CapsuleGeometry(0.8, 2, 4, 16); coreGeo.rotateZ(Math.PI/2);
+                envGeo = new THREE.CapsuleGeometry(1.1, 2.3, 4, 16); envGeo.rotateZ(Math.PI/2);
+            }
+
+            if(shape !== 'complex') {
+                const core = new THREE.Mesh(coreGeo, matCapsid);
+                virusGroup.add(core);
+            }
+
+            // 3. ENVELOPE VISUALIZATION
+            if(env === 'enveloped') {
+                if(shape !== 'complex') {
+                    const eMesh = new THREE.Mesh(envGeo, matEnv);
+                    virusGroup.add(eMesh);
+                }
+
+                // 4. SPIKES
+                const count = 70;
+                for(let i=0; i<count; i++) {
+                    const spikeGroup = new THREE.Group();
+                    
+                    // "Stalk"
+                    const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.3), matSpike);
+                    stalk.position.y = 0.15;
+                    
+                    // "Bulb" (Glycoprotein)
+                    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), matSpike);
+                    bulb.position.y = 0.35;
+                    
+                    spikeGroup.add(stalk); spikeGroup.add(bulb);
+
+                    // Positioning Logic
+                    if(shape==='icosa') {
+                        const phi = Math.acos(-1+(2*i)/count), theta = Math.sqrt(count*Math.PI)*phi;
+                        spikeGroup.position.setFromSphericalCoords(2.0, phi, theta);
+                        spikeGroup.lookAt(0,0,0); spikeGroup.rotateX(Math.PI/2);
+                    } else if (shape==='complex') {
+                        const phi = Math.acos(-1+(2*i)/30), theta = Math.sqrt(30*Math.PI)*phi;
+                        const pos = new THREE.Vector3().setFromSphericalCoords(1.6, phi, theta);
+                        pos.y += 1.5;
+                        spikeGroup.position.copy(pos);
+                        spikeGroup.lookAt(0,1.5,0); spikeGroup.rotateX(Math.PI/2);
+                    } else if (shape==='filament') {
+                        // Distribute along spiral curve
+                        const t = i/count;
+                        const angle = t * Math.PI * 4;
+                        const x = (t-0.5)*8;
+                        const y = Math.sin(angle)*0.8;
+                        const z = Math.cos(angle)*0.8;
+                        
+                        // Surface normal approx
+                        spikeGroup.position.set(x, y, z);
+                        spikeGroup.lookAt(x, y*2, z*2); spikeGroup.rotateX(Math.PI/2);
+                    } else {
+                        const a = (i/count)*Math.PI*10, x = (i/count)*4-2;
+                        spikeGroup.position.set(x, Math.cos(a)*1.1, Math.sin(a)*1.1); 
+                        spikeGroup.lookAt(x,0,0); spikeGroup.rotateX(Math.PI/2);
+                    }
+                    virusGroup.add(spikeGroup);
+                }
+            }
+        };
+
+        // --- RISK ENGINE ---
+        let currentConfig = {};
+
+        function calculateRisk(user) {
+            let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
+            
+            if(user.trans === 'air') { score+=40; r0=3.5; bsl="BSL-3"; }
+            if(user.trans === 'vector') { score+=25; r0=1.5; }
+            if(user.trans === 'water') { score+=30; r0=2.0; }
+            if(user.genome === 'rna') { score+=20; }
+            if(user.shape === 'filament') { score+=15; bsl="BSL-4"; }
+
+            let level = "LOW";
+            let color = "color-low";
+            if(score > 50) { level = "MODERATE"; color = "color-med"; }
+            if(score > 75) { level = "HIGH"; color = "color-high"; }
+
+            return { score, level, color, r0, bsl };
+        }
+
+        window.analyzeVirus = function() {
+            const user = {
+                trans: document.getElementById('trans').value,
+                shape: document.getElementById('shape').value,
+                env: document.getElementById('envelope').value,
+                genome: document.getElementById('genome').value
+            };
+            currentConfig = user;
+            controls.autoRotate = false;
+
+            const match = VIRUS_DB.find(v => v.trans===user.trans && v.shape===user.shape && v.env===user.env && v.genome===user.genome);
+            const risk = calculateRisk(user);
+
+            // Populate Risk
+            document.getElementById('risk-val-text').innerText = risk.level;
+            document.getElementById('risk-val-text').style.color = (risk.level==="HIGH" ? "#d00" : (risk.level==="MODERATE"?"#fa0":"#fff"));
+            document.getElementById('r0-val').innerText = risk.r0;
+            document.getElementById('bsl-val').innerText = risk.bsl;
+            
+            const bar = document.getElementById('risk-bar');
+            bar.className = "progress-fill " + risk.color;
+            setTimeout(() => { bar.style.width = risk.score + "%"; }, 100);
+
+            const overlay = document.getElementById('overlay');
+            const statusText = document.getElementById('status-text');
+            const indicator = document.getElementById('dot-indicator');
+            const form = document.getElementById('discovery-form');
+            const matchBtns = document.getElementById('match-buttons');
+            const simBox = document.getElementById('sim-box');
+
+            if(match) {
+                // MATCH
+                indicator.className = "status-dot dot-match";
+                statusText.innerText = "DATABASE MATCH CONFIRMED";
+                statusText.style.color = "#0088ff";
+                document.getElementById('res-title').innerText = match.name;
+                document.getElementById('res-desc').innerText = match.desc;
+                
+                form.style.display = 'none';
+                simBox.style.display = 'none';
+                matchBtns.style.display = 'flex';
+            } else {
+                // DISCOVERY
+                indicator.className = "status-dot dot-new";
+                statusText.innerText = "NO DATABASE MATCH";
+                statusText.style.color = "#ffaa00";
+                document.getElementById('res-title').innerText = "UNKNOWN PATHOGEN";
+                document.getElementById('res-desc').innerText = "Structural configuration does not match any known viral family. This represents a unique evolutionary branch.";
+                
+                // Calc Similarity
+                let bestScore=0, bestMatch=VIRUS_DB[0];
+                VIRUS_DB.forEach(v => {
+                    let s = 0;
+                    if(v.shape===user.shape) s+=40; if(v.env===user.env) s+=30;
+                    if(v.genome===user.genome) s+=20; if(v.trans===user.trans) s+=10;
+                    if(s > bestScore) { bestScore=s; bestMatch=v; }
+                });
+
+                simBox.style.display = 'block';
+                document.getElementById('sim-text').innerText = `${bestMatch.name} (${bestScore}% Similarity)`;
+                
+                form.style.display = 'block';
+                matchBtns.style.display = 'none';
+            }
+            overlay.style.display = 'flex';
+        };
+
+        window.saveNewVirus = function() {
+            const name = document.getElementById('virus-name-input').value;
+            if(!name) return;
+            let vault = JSON.parse(localStorage.getItem('virusVault') || "[]");
+            vault.push({ name: name, config: currentConfig });
+            localStorage.setItem('virusVault', JSON.stringify(vault));
+            renderVault();
+            closeOverlay();
+            document.getElementById('virus-name-input').value = "";
+        };
+
+        window.closeOverlay = function() {
+            document.getElementById('overlay').style.display = 'none';
+            controls.autoRotate = true;
+        };
+
+        window.renderVault = function() {
+            const list = document.getElementById('vault-list');
+            list.innerHTML = "";
+            const vault = JSON.parse(localStorage.getItem('virusVault') || "[]");
+            vault.forEach((v, idx) => {
+                const item = document.createElement('div');
+                item.className = 'vault-item';
+                item.innerHTML = `<div class="v-name">${v.name}</div><div class="v-meta">${v.config.genome.toUpperCase()} | ${v.config.shape}</div>`;
+                item.onclick = () => loadVirus(idx);
+                list.appendChild(item);
+            });
+        };
+
+        window.loadVirus = function(idx) {
+            const vault = JSON.parse(localStorage.getItem('virusVault') || "[]");
+            const v = vault[idx];
+            document.getElementById('trans').value = v.config.trans;
+            document.getElementById('shape').value = v.config.shape;
+            document.getElementById('envelope').value = v.config.env;
+            document.getElementById('genome').value = v.config.genome;
+            updateModel();
+        };
+
+        function animate() { 
+            requestAnimationFrame(animate); 
+            controls.update(); 
+            renderer.render(scene, camera); 
+        }
+        updateModel(); renderVault(); animate();
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+    </script>
+</body>
+</html>
