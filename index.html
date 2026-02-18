@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IISc Virology Database - Calibrated</title>
+    <title>IISc Virology: Lethal Precision V19</title>
     <style>
-        /* --- THEME: DEEP LAB (UNCHANGED) --- */
+        /* --- THEME: DEEP LAB --- */
         body { margin: 0; overflow: hidden; background-color: #020202; font-family: 'Segoe UI', Roboto, sans-serif; color: #b0b0b0; }
-        
         #canvas-container { width: 100vw; height: 100vh; display: block; background: #000000; }
         
+        /* UI PANEL */
         #ui-panel {
             position: absolute; top: 0; left: 0; width: 380px; height: 100%;
             background: rgba(12, 12, 16, 0.95); border-right: 1px solid #333;
@@ -16,7 +16,6 @@
             display: flex; flex-direction: column; z-index: 10;
             overflow-y: auto;
         }
-
         #ui-panel::-webkit-scrollbar { width: 6px; }
         #ui-panel::-webkit-scrollbar-track { background: #111; }
         #ui-panel::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 3px; }
@@ -27,30 +26,26 @@
             border-left: 3px solid #0088ff; padding-left: 15px; flex-shrink: 0;
         }
 
-        .control-group { margin-bottom: 25px; position: relative; flex-shrink: 0; }
-        label { 
-            display: block; color: #666; font-size: 11px; margin-bottom: 6px; 
-            font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-        }
-        
-        select {
-            width: 100%; padding: 12px 0; background: transparent; color: #fff; 
-            border: none; border-bottom: 1px solid #444; font-size: 15px; 
-            font-family: inherit; cursor: pointer; transition: 0.3s;
-        }
-        select:hover { border-bottom-color: #0088ff; color: #0088ff; }
-        select:focus { outline: none; border-bottom-color: #fff; }
-        select option { background: #111; color: #fff; padding: 10px; }
-
+        /* BUTTON AT TOP */
         #scan-btn {
-            margin-top: auto; padding: 20px; font-size: 14px; font-weight: 700; 
+            padding: 15px; font-size: 14px; font-weight: 700; margin-bottom: 25px; flex-shrink: 0;
             background: #0088ff; color: #fff; border: none; border-radius: 4px;
             cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
             box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3); transition: 0.2s;
-            flex-shrink: 0; margin-bottom: 20px;
         }
-        #scan-btn:hover { background: #0066cc; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.5); }
+        #scan-btn:hover { background: #0066cc; transform: translateY(-1px); }
 
+        .control-group { margin-bottom: 20px; position: relative; flex-shrink: 0; }
+        label { display: block; color: #666; font-size: 11px; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        select {
+            width: 100%; padding: 10px 0; background: transparent; color: #fff; 
+            border: none; border-bottom: 1px solid #444; font-size: 15px; 
+            font-family: inherit; cursor: pointer; transition: 0.3s;
+        }
+        select:focus { outline: none; border-bottom-color: #fff; }
+        select option { background: #111; color: #fff; padding: 10px; }
+
+        /* VAULT */
         #vault-panel {
             position: absolute; top: 0; right: 0; width: 260px; height: 100%;
             background: rgba(10, 10, 12, 0.6); border-left: 1px solid #222;
@@ -58,7 +53,6 @@
         }
         #vault-panel * { pointer-events: auto; }
         #vault-title { color: #444; font-size: 10px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        
         .vault-item { 
             padding: 12px; margin-bottom: 5px; border-radius: 4px;
             cursor: pointer; transition: 0.2s; border: 1px solid transparent; background: rgba(255,255,255,0.02);
@@ -67,6 +61,7 @@
         .v-name { color: #ddd; font-size: 13px; font-weight: 600; }
         .v-meta { color: #666; font-size: 10px; text-transform: uppercase; margin-top: 3px; }
 
+        /* MODAL */
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 100;
@@ -78,55 +73,35 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.9);
             max-height: 90vh; overflow-y: auto;
         }
-
         #res-status { font-size: 11px; letter-spacing: 3px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 10px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .dot-match { background: #0088ff; box-shadow: 0 0 10px #0088ff; }
         .dot-new { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
-
         #res-title { font-size: 42px; color: #fff; margin: 0 0 20px 0; font-weight: 300; letter-spacing: -1px; }
         #res-desc { color: #999; font-size: 15px; line-height: 1.7; margin-bottom: 30px; font-weight: 300; border-left: 2px solid #333; padding-left: 20px; }
 
-        #risk-container { 
-            background: #0e0e10; padding: 20px; border-radius: 4px; margin-bottom: 25px; 
-            border: 1px solid #222; 
-        }
+        /* RISK METER */
+        #risk-container { background: #0e0e10; padding: 20px; border-radius: 4px; margin-bottom: 25px; border: 1px solid #222; }
         .risk-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: flex-end; }
         .risk-label { color: #666; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
         .risk-val { color: #fff; font-size: 14px; font-weight: bold; font-family: monospace; }
-        
         .progress-track { width: 100%; height: 4px; background: #222; margin-top: 5px; position: relative; }
         .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
-        
-        .color-low { background: #444; }
-        .color-med { background: #ffaa00; }
-        .color-high { background: #d00; }
+        .color-low { background: #444; } .color-med { background: #ffaa00; } .color-high { background: #d00; }
 
+        /* FORM & BUTTONS */
         #discovery-form { display: none; margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
-        #virus-name-input { 
-            padding: 10px 0; width: 100%; background: transparent; border: none; border-bottom: 1px solid #444;
-            color: #fff; font-size: 20px; font-family: inherit; margin-bottom: 20px;
-        }
+        #virus-name-input { padding: 10px 0; width: 100%; background: transparent; border: none; border-bottom: 1px solid #444; color: #fff; font-size: 20px; font-family: inherit; margin-bottom: 20px; }
         #virus-name-input:focus { outline: none; border-bottom-color: #ffaa00; }
-        
         .btn-group { display: flex; gap: 10px; justify-content: flex-end; }
-        button.action-btn { 
-            padding: 10px 25px; background: #1a1a20; color: #fff; border: 1px solid #333; 
-            cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
-        }
+        button.action-btn { padding: 10px 25px; background: #1a1a20; color: #fff; border: 1px solid #333; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
         button.action-btn:hover { background: #fff; color: #000; }
         button.primary { background: #0088ff; border: none; }
         button.primary:hover { background: #0066cc; color: white; }
 
-        #instructions { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            color: #444; font-size: 11px; letter-spacing: 2px; pointer-events: none;
-        }
+        #instructions { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #444; font-size: 11px; letter-spacing: 2px; pointer-events: none; }
     </style>
-    
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
-    </script>
+    <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } } </script>
 </head>
 <body>
 
@@ -135,90 +110,29 @@
 
     <div id="ui-panel">
         <h1>Pathogen<br>Analyzer</h1>
-        
-        <div class="control-group">
-            <label>Transmission Vector</label>
-            <select id="trans" onchange="updateModel()">
-                <option value="air">Airborne (Aerosol)</option>
-                <option value="vector">Vector (Arthropod)</option>
-                <option value="contact">Direct Contact</option>
-                <option value="water">Waterborne</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Capsid Morphology</label>
-            <select id="shape" onchange="updateModel()">
-                <option value="icosa">Icosahedral</option>
-                <option value="helical">Helical</option>
-                <option value="complex">Complex (Binary)</option>
-                <option value="bullet">Bullet (Rhabdo)</option>
-                <option value="filament">Filamentous</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Viral Envelope</label>
-            <select id="envelope" onchange="updateModel()">
-                <option value="naked">Non-Enveloped (Naked)</option>
-                <option value="enveloped">Lipid Enveloped</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>Genetic Material</label>
-            <select id="genome" onchange="updateModel()">
-                <option value="dna">DNA (Double Stranded)</option>
-                <option value="rna">RNA (Single Stranded)</option>
-            </select>
-        </div>
-
         <button id="scan-btn" onclick="analyzeVirus()">RUN SEQUENCE ANALYSIS</button>
+        <div class="control-group"><label>Transmission Vector</label><select id="trans" onchange="updateModel()"><option value="air">Airborne (Aerosol)</option><option value="vector">Vector (Arthropod)</option><option value="contact">Direct Contact</option><option value="water">Waterborne</option></select></div>
+        <div class="control-group"><label>Capsid Morphology</label><select id="shape" onchange="updateModel()"><option value="icosa">Icosahedral</option><option value="helical">Helical</option><option value="complex">Complex (Binary)</option><option value="bullet">Bullet (Rhabdo)</option><option value="filament">Filamentous</option></select></div>
+        <div class="control-group"><label>Viral Envelope</label><select id="envelope" onchange="updateModel()"><option value="naked">Non-Enveloped (Naked)</option><option value="enveloped">Lipid Enveloped</option></select></div>
+        <div class="control-group"><label>Genetic Material</label><select id="genome" onchange="updateModel()"><option value="dna">DNA (Double Stranded)</option><option value="rna">RNA (Single Stranded)</option></select></div>
     </div>
 
-    <div id="vault-panel">
-        <div id="vault-title">LOGGED SPECIMENS</div>
-        <div id="vault-list"></div>
-    </div>
+    <div id="vault-panel"><div id="vault-title">LOGGED SPECIMENS</div><div id="vault-list"></div></div>
 
     <div id="overlay">
         <div id="result-box">
             <div id="res-status"><span class="status-dot" id="dot-indicator"></span><span id="status-text">ANALYSIS COMPLETE</span></div>
             <h1 id="res-title">VIRUS NAME</h1>
             <p id="res-desc">Description...</p>
-
             <div id="risk-container">
-                <div class="risk-row">
-                    <span class="risk-label">PANDEMIC POTENTIAL</span>
-                    <span class="risk-val" id="risk-val-text">--</span>
-                </div>
+                <div class="risk-row"><span class="risk-label">PANDEMIC POTENTIAL</span><span class="risk-val" id="risk-val-text">--</span></div>
                 <div class="progress-track"><div class="progress-fill" id="risk-bar"></div></div>
-                <div class="risk-row" style="margin-top:15px;">
-                    <span class="risk-label">REPRODUCTION NUMBER (R0)</span>
-                    <span class="risk-val" id="r0-val">--</span>
-                </div>
-                <div class="risk-row" style="margin-top:15px;">
-                    <span class="risk-label">BIOSAFETY LEVEL</span>
-                    <span class="risk-val" id="bsl-val">--</span>
-                </div>
-                <div id="sim-box" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #222; display:none;">
-                    <span class="risk-label" style="color:#888;">STRUCTURAL MATCH</span><br>
-                    <span id="sim-text" style="color:#ffaa00; font-size:12px; margin-top:5px; display:block;"></span>
-                </div>
+                <div class="risk-row" style="margin-top:15px;"><span class="risk-label">REPRODUCTION NUMBER (R0)</span><span class="risk-val" id="r0-val">--</span></div>
+                <div class="risk-row" style="margin-top:15px;"><span class="risk-label">BIOSAFETY LEVEL</span><span class="risk-val" id="bsl-val">--</span></div>
+                <div id="sim-box" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #222; display:none;"><span class="risk-label" style="color:#888;">STRUCTURAL MATCH</span><br><span id="sim-text" style="color:#ffaa00; font-size:12px; margin-top:5px; display:block;"></span></div>
             </div>
-
-            <div id="discovery-form">
-                <span class="risk-label" style="color:#ffaa00;">UNCLASSIFIED PATHOGEN DETECTED</span>
-                <input type="text" id="virus-name-input" placeholder="Enter Scientific Designation" maxlength="20">
-                <div class="btn-group">
-                    <button class="action-btn" onclick="closeOverlay()">Discard</button>
-                    <button class="action-btn primary" onclick="saveNewVirus()">Register</button>
-                </div>
-            </div>
-
-            <div class="btn-group" id="match-buttons">
-                <button class="action-btn" onclick="closeOverlay()">Close Report</button>
-            </div>
+            <div id="discovery-form"><span class="risk-label" style="color:#ffaa00;">UNCLASSIFIED PATHOGEN DETECTED</span><input type="text" id="virus-name-input" placeholder="Enter Scientific Designation" maxlength="20"><div class="btn-group"><button class="action-btn" onclick="closeOverlay()">Discard</button><button class="action-btn primary" onclick="saveNewVirus()">Register</button></div></div>
+            <div class="btn-group" id="match-buttons"><button class="action-btn" onclick="closeOverlay()">Close Report</button></div>
         </div>
     </div>
 
@@ -226,7 +140,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- 1. FULL DATABASE (64 ENTRIES) ---
+        // --- DATABASE ---
         const VIRUS_DB = [
             { trans: "air", shape: "icosa", env: "naked", genome: "dna", name: "Adenovirus", desc: "A robust pathogen causing respiratory and gastrointestinal infections. Its naked capsid confers high resistance to environmental stressors." },
             { trans: "air", shape: "icosa", env: "enveloped", genome: "rna", name: "SARS-CoV-2", desc: "The causative agent of COVID-19. Large surface spike proteins facilitate entry into ACE2 receptors in the respiratory tract." },
@@ -289,7 +203,7 @@
             { trans: "contact", shape: "filament", env: "naked", genome: "dna", name: "Lipothrixvirus", desc: "Infects thermophilic archaea. Extremely stable structure." },
             { trans: "contact", shape: "complex", env: "enveloped", genome: "dna", name: "Molluscum Contagiosum", desc: "A poxvirus causing mild skin lesions. Spread by direct contact." },
             { trans: "contact", shape: "helical", env: "enveloped", genome: "rna", name: "Nipah Virus", desc: "Transmitted via contact with infected bats, pigs, or their fluids." },
-            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Hepatitis B", desc: "Bloodborne pathogen. Can cause chronic liver infection." },
+            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Hepatitis B", desc: "Bloodborne. Chronic liver infection." },
             { trans: "contact", shape: "helical", env: "naked", genome: "dna", name: "Inovirus", desc: "A filamentous bacteriophage that causes chronic infection in bacteria." },
             { trans: "contact", shape: "bullet", env: "enveloped", genome: "dna", name: "Bacillus Phage", desc: "A rare DNA virus with a bullet shape infecting bacteria." }
         ];
@@ -324,14 +238,14 @@
         // --- MATERIALS ---
         const matCapsid = new THREE.MeshStandardMaterial({ color: 0x2a3b4c, roughness: 0.5, metalness: 0.4 });
         const matEnv = new THREE.MeshPhysicalMaterial({ 
-            color: 0x88ccff, transparent: true, opacity: 0.15, transmission: 0.2, roughness: 0.1, 
+            color: 0x88ccff, transparent: true, opacity: 0.25, transmission: 0.4, roughness: 0.2, 
             clearcoat: 1.0, side: THREE.DoubleSide, depthWrite: false
         });
-        const matSpike = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.5 });
+        const matSpike = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.5 }); // Dark Red
         const matDNA = new THREE.MeshBasicMaterial({ color: 0x44ffaa, wireframe: true }); 
         const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa44, wireframe: true });
 
-        // --- BUILDER ---
+        // --- BUILDER (FIXED) ---
         window.updateModel = function() {
             while(virusGroup.children.length > 0) virusGroup.remove(virusGroup.children[0]);
             
@@ -393,7 +307,7 @@
                 virusGroup.add(eMesh);
             }
 
-            // 4. SPIKES (Thorn)
+            // 4. SPIKES (Thorn - Pointing Out)
             if(env === 'enveloped') {
                 const count = (shape==='filament') ? 100 : 70;
                 for(let i=0; i<count; i++) {
@@ -407,16 +321,35 @@
                         spike.lookAt(0,0,0); spike.rotateX(-Math.PI/2);
                     } 
                     else if (shape==='filament') {
+                        // FIXED MATH: Calculate normal from curve derivative
                         const t = i/count;
                         const angle = t * Math.PI * 8;
                         const cx = (t-0.5)*10; 
                         const cy = Math.sin(t*Math.PI*3)*1.5;
                         const cz = Math.cos(t*Math.PI*2)*0.5;
-                        const r = 1.0; 
-                        const ny = Math.sin(angle)*r;
-                        const nz = Math.cos(angle)*r;
-                        spike.position.set(cx, cy+ny, cz+nz);
-                        spike.lookAt(cx, cy+ny*2, cz+nz*2); spike.rotateX(Math.PI/2);
+                        
+                        // Approximate tangent vector
+                        const tx = 10; 
+                        const ty = Math.cos(t*Math.PI*3)*1.5 * Math.PI*3;
+                        const tz = -Math.sin(t*Math.PI*2)*0.5 * Math.PI*2;
+                        const tangent = new THREE.Vector3(tx, ty, tz).normalize();
+                        
+                        // Create perpendicular vector (random rotation around tangent)
+                        const up = new THREE.Vector3(0, 1, 0);
+                        let normal = new THREE.Vector3().crossVectors(tangent, up).normalize();
+                        if(normal.length() === 0) normal = new THREE.Vector3(0,0,1); // Fallback
+                        
+                        // Rotate normal around tangent to distribute around tube
+                        normal.applyAxisAngle(tangent, angle);
+                        
+                        // Position = Point on curve + Normal * Radius
+                        const pos = new THREE.Vector3(cx, cy, cz).add(normal.multiplyScalar(1.0)); // 1.0 is env radius
+                        
+                        spike.position.copy(pos);
+                        // Look at position + normal (pointing away from core)
+                        const target = pos.clone().add(normal);
+                        spike.lookAt(target); 
+                        spike.rotateX(Math.PI/2);
                     }
                     else if (shape==='complex') {
                         const phi = Math.acos(-1+(2*i)/30), theta = Math.sqrt(30*Math.PI)*phi;
@@ -435,35 +368,29 @@
             }
         };
 
-        // --- RISK ENGINE (TUNED FOR "SLIGHTLY EASIER") ---
+        // --- RISK ENGINE ---
         let currentConfig = {};
 
         function calculateRisk(user) {
             let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
             
-            // TRANSMISSION (Airborne heavily weighted now)
             if(user.trans === 'air') { score+=50; r0=4.5; bsl="BSL-3"; } 
             else if(user.trans === 'vector') { score+=25; r0=1.5; }
             else if(user.trans === 'water') { score+=30; r0=2.0; }
             else { score+=10; r0=0.8; }
             
-            // GENOME
-            if(user.genome === 'rna') { score+=20; }
-            else { score+=10; } // DNA isn't 0 anymore, gives small points
+            if(user.genome === 'rna') { score+=20; } else { score+=10; }
             
-            // SHAPE
             if(user.shape === 'filament') { score+=15; bsl="BSL-4"; }
-            if(user.shape === 'complex') { score+=20; } // Smallpox factor
+            if(user.shape === 'complex') { score+=20; } 
 
-            // ENVELOPE
-            if(user.env === 'enveloped') { score+=10; } // Smallpox factor
+            if(user.env === 'enveloped') { score+=10; }
             if(user.env === 'naked') { score+=20; }
 
-            // THRESHOLDS LOWERED
             let level = "LOW";
             let color = "color-low";
             if(score > 40) { level = "MODERATE"; color = "color-med"; }
-            if(score > 65) { level = "HIGH"; color = "color-high"; } // Easier to hit High
+            if(score > 65) { level = "HIGH"; color = "color-high"; }
 
             return { score, level, color, r0, bsl };
         }
