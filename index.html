@@ -2,122 +2,198 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IISc Virology: Lethal Precision V19</title>
+    <title>Pathogen Threat Terminal V21</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- THEME: DEEP LAB --- */
-        body { margin: 0; overflow: hidden; background-color: #020202; font-family: 'Segoe UI', Roboto, sans-serif; color: #b0b0b0; }
-        #canvas-container { width: 100vw; height: 100vh; display: block; background: #000000; }
+        /* --- THEME: BSL-4 TERMINAL --- */
+        body { margin: 0; overflow: hidden; background-color: #05070a; font-family: 'Share Tech Mono', monospace; color: #cccccc; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; background: #05070a; }
         
-        /* UI PANEL */
-        #ui-panel {
-            position: absolute; top: 0; left: 0; width: 380px; height: 100%;
-            background: rgba(12, 12, 16, 0.95); border-right: 1px solid #333;
-            backdrop-filter: blur(15px); padding: 30px; 
-            display: flex; flex-direction: column; z-index: 10;
-            overflow-y: auto;
+        /* CRT GRID OVERLAY */
+        body::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%; pointer-events: none; z-index: 999; opacity: 0.4;
         }
-        #ui-panel::-webkit-scrollbar { width: 6px; }
-        #ui-panel::-webkit-scrollbar-track { background: #111; }
-        #ui-panel::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 3px; }
+
+        /* UI PANEL (LEFT) */
+        #ui-panel {
+            position: absolute; top: 0; left: 0; width: 400px; height: 100%;
+            background: rgba(5, 7, 10, 0.90); border-right: 1px solid #00f0ff;
+            backdrop-filter: blur(10px); padding: 30px; 
+            display: flex; flex-direction: column; z-index: 10;
+            overflow-y: auto; box-shadow: 5px 0 30px rgba(0, 240, 255, 0.1);
+        }
+        #ui-panel::-webkit-scrollbar { width: 4px; }
+        #ui-panel::-webkit-scrollbar-thumb { background: #00f0ff; }
+
+        /* TERMINAL SYSTEM HEADER */
+        .sys-header {
+            font-size: 13px; color: #00ffaa; margin-bottom: 25px; line-height: 1.5;
+            text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 15px;
+        }
+        .sys-header span { color: #fff; }
 
         h1 { 
-            color: #e0e0e0; font-size: 22px; text-align: left; margin: 0 0 20px 0; 
-            font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
-            border-left: 3px solid #0088ff; padding-left: 15px; flex-shrink: 0;
+            font-family: 'Rajdhani', sans-serif; color: #fff; font-size: 42px; 
+            text-align: left; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 2px; 
+            text-transform: uppercase; text-shadow: 0 0 10px rgba(0,240,255,0.5);
         }
+        .subtitle { font-family: 'Rajdhani', sans-serif; color: #ff0055; font-size: 16px; letter-spacing: 4px; margin-bottom: 30px; font-weight: 600; }
 
-        /* BUTTON AT TOP */
-        #scan-btn {
-            padding: 15px; font-size: 14px; font-weight: 700; margin-bottom: 25px; flex-shrink: 0;
-            background: #0088ff; color: #fff; border: none; border-radius: 4px;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3); transition: 0.2s;
-        }
-        #scan-btn:hover { background: #0066cc; transform: translateY(-1px); }
-
-        .control-group { margin-bottom: 20px; position: relative; flex-shrink: 0; }
-        label { display: block; color: #666; font-size: 11px; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .control-group { margin-bottom: 25px; position: relative; flex-shrink: 0; }
+        label { display: block; color: #00f0ff; font-size: 12px; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        label::before { content: "> "; }
+        
         select {
-            width: 100%; padding: 10px 0; background: transparent; color: #fff; 
-            border: none; border-bottom: 1px solid #444; font-size: 15px; 
-            font-family: inherit; cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 10px 5px; background: rgba(0, 240, 255, 0.05); color: #fff; 
+            border: 1px solid #333; font-size: 14px; 
+            font-family: 'Share Tech Mono', monospace; cursor: pointer; transition: 0.3s;
         }
-        select:focus { outline: none; border-bottom-color: #fff; }
-        select option { background: #111; color: #fff; padding: 10px; }
+        select:focus { outline: none; border-color: #00f0ff; background: rgba(0, 240, 255, 0.1); }
+        select option { background: #05070a; color: #fff; }
 
-        /* VAULT */
+        /* BUTTON AT BOTTOM */
+        #scan-btn {
+            margin-top: 10px; padding: 18px; font-size: 16px; font-weight: 700; font-family: 'Rajdhani', sans-serif;
+            background: transparent; color: #ff0055; border: 2px solid #ff0055; border-radius: 0px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 3px;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.2) inset; transition: 0.2s;
+        }
+        #scan-btn:hover { background: #ff0055; color: #fff; box-shadow: 0 0 25px rgba(255, 0, 85, 0.6); }
+
+        /* GLOBAL VAULT (RIGHT) */
         #vault-panel {
-            position: absolute; top: 0; right: 0; width: 260px; height: 100%;
-            background: rgba(10, 10, 12, 0.6); border-left: 1px solid #222;
-            padding: 30px 20px; overflow-y: auto; pointer-events: none;
+            position: absolute; top: 0; right: 0; width: 300px; height: 100%;
+            background: rgba(5, 7, 10, 0.85); border-left: 1px solid #333;
+            padding: 30px 20px; overflow-y: auto; pointer-events: none; z-index: 10;
         }
         #vault-panel * { pointer-events: auto; }
-        #vault-title { color: #444; font-size: 10px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .vault-item { 
-            padding: 12px; margin-bottom: 5px; border-radius: 4px;
-            cursor: pointer; transition: 0.2s; border: 1px solid transparent; background: rgba(255,255,255,0.02);
+        #vault-title { 
+            color: #ffaa00; font-size: 14px; font-weight: bold; letter-spacing: 2px; 
+            margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 10px; 
         }
-        .vault-item:hover { background: rgba(255,255,255,0.08); border-color: #333; }
-        .v-name { color: #ddd; font-size: 13px; font-weight: 600; }
-        .v-meta { color: #666; font-size: 10px; text-transform: uppercase; margin-top: 3px; }
+        .vault-item { 
+            padding: 12px; margin-bottom: 8px;
+            cursor: pointer; transition: 0.2s; border: 1px solid #222; background: rgba(255,255,255,0.02);
+            position: relative;
+        }
+        .vault-item::before { content: ""; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: #ffaa00; opacity: 0.5; }
+        .vault-item:hover { background: rgba(255,170,0,0.1); border-color: #ffaa00; }
+        .v-name { color: #fff; font-size: 14px; font-weight: bold; }
+        .v-meta { color: #888; font-size: 11px; text-transform: uppercase; margin-top: 5px; }
 
         /* MODAL */
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 100;
-            justify-content: center; align-items: center; backdrop-filter: blur(8px);
+            background: rgba(2,3,5,0.95); z-index: 1000;
+            justify-content: center; align-items: center; backdrop-filter: blur(10px);
         }
         #result-box {
-            width: 650px; background: #08080a; border: 1px solid #333;
-            padding: 50px; position: relative; border-radius: 4px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            width: 700px; background: #080a0e; border: 1px solid #ff0055;
+            padding: 50px; position: relative;
+            box-shadow: 0 0 50px rgba(255,0,85,0.2);
             max-height: 90vh; overflow-y: auto;
         }
-        #res-status { font-size: 11px; letter-spacing: 3px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; color: #555; display: flex; align-items: center; gap: 10px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot-match { background: #0088ff; box-shadow: 0 0 10px #0088ff; }
-        .dot-new { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
-        #res-title { font-size: 42px; color: #fff; margin: 0 0 20px 0; font-weight: 300; letter-spacing: -1px; }
-        #res-desc { color: #999; font-size: 15px; line-height: 1.7; margin-bottom: 30px; font-weight: 300; border-left: 2px solid #333; padding-left: 20px; }
+        #result-box::-webkit-scrollbar { width: 4px; }
+        #result-box::-webkit-scrollbar-thumb { background: #ff0055; }
+
+        #res-status { font-size: 14px; letter-spacing: 3px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .status-dot { width: 10px; height: 10px; display: inline-block; }
+        .dot-match { background: #00f0ff; box-shadow: 0 0 15px #00f0ff; }
+        .dot-new { background: #ff0055; box-shadow: 0 0 15px #ff0055; }
+        #res-title { font-family: 'Rajdhani', sans-serif; font-size: 50px; color: #fff; margin: 0 0 20px 0; font-weight: 700; text-transform: uppercase; }
+        #res-desc { color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 30px; border-left: 2px solid #333; padding-left: 20px; }
 
         /* RISK METER */
-        #risk-container { background: #0e0e10; padding: 20px; border-radius: 4px; margin-bottom: 25px; border: 1px solid #222; }
+        #risk-container { background: #05070a; padding: 25px; margin-bottom: 25px; border: 1px solid #222; }
         .risk-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: flex-end; }
-        .risk-label { color: #666; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
-        .risk-val { color: #fff; font-size: 14px; font-weight: bold; font-family: monospace; }
-        .progress-track { width: 100%; height: 4px; background: #222; margin-top: 5px; position: relative; }
-        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-out; }
-        .color-low { background: #444; } .color-med { background: #ffaa00; } .color-high { background: #d00; }
+        .risk-label { color: #666; font-size: 12px; letter-spacing: 2px; }
+        .risk-val { color: #fff; font-size: 16px; font-weight: bold; }
+        .progress-track { width: 100%; height: 6px; background: #111; margin-top: 10px; position: relative; }
+        .progress-fill { height: 100%; width: 0%; transition: width 1.5s cubic-bezier(0.1, 0.8, 0.2, 1); }
+        .color-low { background: #00f0ff; box-shadow: 0 0 10px #00f0ff; } 
+        .color-med { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; } 
+        .color-high { background: #ff0055; box-shadow: 0 0 10px #ff0055; }
 
         /* FORM & BUTTONS */
-        #discovery-form { display: none; margin-top: 20px; border-top: 1px solid #222; padding-top: 20px; }
-        #virus-name-input { padding: 10px 0; width: 100%; background: transparent; border: none; border-bottom: 1px solid #444; color: #fff; font-size: 20px; font-family: inherit; margin-bottom: 20px; }
-        #virus-name-input:focus { outline: none; border-bottom-color: #ffaa00; }
-        .btn-group { display: flex; gap: 10px; justify-content: flex-end; }
-        button.action-btn { padding: 10px 25px; background: #1a1a20; color: #fff; border: 1px solid #333; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
-        button.action-btn:hover { background: #fff; color: #000; }
-        button.primary { background: #0088ff; border: none; }
-        button.primary:hover { background: #0066cc; color: white; }
+        #discovery-form { display: none; margin-top: 25px; border-top: 1px solid #333; padding-top: 25px; }
+        #virus-name-input { 
+            padding: 15px 10px; width: 100%; background: rgba(255,0,85,0.05); border: 1px solid #444; 
+            color: #fff; font-size: 20px; font-family: 'Share Tech Mono', monospace; margin-bottom: 20px; box-sizing: border-box;
+        }
+        #virus-name-input:focus { outline: none; border-color: #ff0055; }
+        .btn-group { display: flex; gap: 15px; justify-content: flex-end; }
+        button.action-btn { padding: 12px 30px; background: #111; color: #fff; border: 1px solid #444; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        button.action-btn:hover { background: #333; }
+        button.primary { background: #ff0055; border: none; color: #fff; }
+        button.primary:hover { background: #cc0044; box-shadow: 0 0 15px rgba(255,0,85,0.5); }
+        
+        /* SHARE BUTTON */
+        #share-btn-container { display: none; margin-top: 15px; }
+        button.share-btn { background: #00f0ff; color: #000; border: none; padding: 12px 30px; font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%; transition: 0.2s; }
+        button.share-btn:hover { background: #00ccdd; box-shadow: 0 0 15px rgba(0,240,255,0.5); }
 
-        #instructions { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #444; font-size: 11px; letter-spacing: 2px; pointer-events: none; }
+        #instructions { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #00f0ff; font-size: 12px; letter-spacing: 3px; pointer-events: none; opacity: 0.6; }
     </style>
     <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } } </script>
 </head>
 <body>
 
     <div id="canvas-container"></div>
-    <div id="instructions">DRAG TO ROTATE MODEL</div>
+    <div id="instructions">[ DRAG TO MANIPULATE 3D MODEL ]</div>
 
     <div id="ui-panel">
-        <h1>Pathogen<br>Analyzer</h1>
+        <div class="sys-header">
+            SYSTEM : <span>ACTIVE</span><br>
+            CLEARANCE: <span>LEVEL 4 BIO-SAFETY</span><br>
+            DATABASE : <span>64 CLASSIFIED // 16 UNKNOWN</span>
+        </div>
+        
+        <h1>WHY-RUS</h1>
+        <div class="subtitle">[ THREAT DOSSIER ]</div>
+        
+        <div class="control-group">
+            <label>Transmission Vector</label>
+            <select id="trans" onchange="updateModel()">
+                <option value="air">Airborne (Aerosol)</option>
+                <option value="vector">Vector (Arthropod)</option>
+                <option value="contact">Direct Contact</option>
+                <option value="water">Waterborne</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Capsid Morphology</label>
+            <select id="shape" onchange="updateModel()">
+                <option value="icosa">Icosahedral</option>
+                <option value="helical">Helical</option>
+                <option value="complex">Complex (Binary)</option>
+                <option value="bullet">Bullet (Rhabdo)</option>
+                <option value="filament">Filamentous</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Viral Envelope</label>
+            <select id="envelope" onchange="updateModel()">
+                <option value="naked">Non-Enveloped (Naked)</option>
+                <option value="enveloped">Lipid Enveloped</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Genetic Payload</label>
+            <select id="genome" onchange="updateModel()">
+                <option value="dna">DNA (Double Stranded)</option>
+                <option value="rna">RNA (Single Stranded)</option>
+            </select>
+        </div>
+
         <button id="scan-btn" onclick="analyzeVirus()">RUN SEQUENCE ANALYSIS</button>
-        <div class="control-group"><label>Transmission Vector</label><select id="trans" onchange="updateModel()"><option value="air">Airborne (Aerosol)</option><option value="vector">Vector (Arthropod)</option><option value="contact">Direct Contact</option><option value="water">Waterborne</option></select></div>
-        <div class="control-group"><label>Capsid Morphology</label><select id="shape" onchange="updateModel()"><option value="icosa">Icosahedral</option><option value="helical">Helical</option><option value="complex">Complex (Binary)</option><option value="bullet">Bullet (Rhabdo)</option><option value="filament">Filamentous</option></select></div>
-        <div class="control-group"><label>Viral Envelope</label><select id="envelope" onchange="updateModel()"><option value="naked">Non-Enveloped (Naked)</option><option value="enveloped">Lipid Enveloped</option></select></div>
-        <div class="control-group"><label>Genetic Material</label><select id="genome" onchange="updateModel()"><option value="dna">DNA (Double Stranded)</option><option value="rna">RNA (Single Stranded)</option></select></div>
     </div>
 
-    <div id="vault-panel"><div id="vault-title">LOGGED SPECIMENS</div><div id="vault-list"></div></div>
+    <div id="vault-panel">
+        <div id="vault-title">// GLOBAL DISCOVERY LOG</div>
+        <div id="vault-list"></div>
+    </div>
 
     <div id="overlay">
         <div id="result-box">
@@ -125,14 +201,34 @@
             <h1 id="res-title">VIRUS NAME</h1>
             <p id="res-desc">Description...</p>
             <div id="risk-container">
-                <div class="risk-row"><span class="risk-label">PANDEMIC POTENTIAL</span><span class="risk-val" id="risk-val-text">--</span></div>
+                <div class="risk-row"><span class="risk-label">THREAT LEVEL</span><span class="risk-val" id="risk-val-text">--</span></div>
                 <div class="progress-track"><div class="progress-fill" id="risk-bar"></div></div>
-                <div class="risk-row" style="margin-top:15px;"><span class="risk-label">REPRODUCTION NUMBER (R0)</span><span class="risk-val" id="r0-val">--</span></div>
-                <div class="risk-row" style="margin-top:15px;"><span class="risk-label">BIOSAFETY LEVEL</span><span class="risk-val" id="bsl-val">--</span></div>
-                <div id="sim-box" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #222; display:none;"><span class="risk-label" style="color:#888;">STRUCTURAL MATCH</span><br><span id="sim-text" style="color:#ffaa00; font-size:12px; margin-top:5px; display:block;"></span></div>
+                <div class="risk-row" style="margin-top:20px;"><span class="risk-label">REPRODUCTION (R0)</span><span class="risk-val" id="r0-val">--</span></div>
+                <div class="risk-row" style="margin-top:10px;"><span class="risk-label">BIOSAFETY PROTOCOL</span><span class="risk-val" id="bsl-val">--</span></div>
+                <div id="sim-box" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #333; display:none;">
+                    <span class="risk-label" style="color:#666;">NEAREST STRUCTURAL MATCH</span><br>
+                    <span id="sim-text" style="color:#00f0ff; font-size:14px; margin-top:5px; display:block;"></span>
+                </div>
             </div>
-            <div id="discovery-form"><span class="risk-label" style="color:#ffaa00;">UNCLASSIFIED PATHOGEN DETECTED</span><input type="text" id="virus-name-input" placeholder="Enter Scientific Designation" maxlength="20"><div class="btn-group"><button class="action-btn" onclick="closeOverlay()">Discard</button><button class="action-btn primary" onclick="saveNewVirus()">Register</button></div></div>
-            <div class="btn-group" id="match-buttons"><button class="action-btn" onclick="closeOverlay()">Close Report</button></div>
+            
+            <div id="discovery-form">
+                <span class="risk-label" style="color:#ff0055; font-size: 14px;">[ CATASTROPHIC UNCLASSIFIED PATHOGEN DETECTED ]</span>
+                <p style="font-size: 12px; color: #888; margin-top: 5px; margin-bottom: 15px;">Register new highly-lethal structural configuration to the main server.</p>
+                <input type="text" id="virus-name-input" placeholder="> Enter Scientific Designation_" maxlength="25">
+                <div class="btn-group">
+                    <button class="action-btn" onclick="closeOverlay()">Abort</button>
+                    <button class="action-btn primary" onclick="saveNewVirus()">Register to Mainframe</button>
+                </div>
+            </div>
+
+            <div id="share-btn-container">
+                <p style="color:#00ffaa; font-size:12px; margin-bottom: 10px; text-transform: uppercase;">[ SEQUENCE SUCCESSFULLY LOGGED ]</p>
+                <button class="share-btn" onclick="shareToSocials()">SHARE DISCOVERY TO NETWORK</button>
+            </div>
+            
+            <div class="btn-group" id="match-buttons" style="margin-top: 20px;">
+                <button class="action-btn" onclick="closeOverlay()">Close Dossier</button>
+            </div>
         </div>
     </div>
 
@@ -140,112 +236,105 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- DATABASE ---
-        const VIRUS_DB = [
-            { trans: "air", shape: "icosa", env: "naked", genome: "dna", name: "Adenovirus", desc: "A robust pathogen causing respiratory and gastrointestinal infections. Its naked capsid confers high resistance to environmental stressors." },
-            { trans: "air", shape: "icosa", env: "enveloped", genome: "rna", name: "SARS-CoV-2", desc: "The causative agent of COVID-19. Large surface spike proteins facilitate entry into ACE2 receptors in the respiratory tract." },
-            { trans: "air", shape: "helical", env: "enveloped", genome: "rna", name: "Influenza A", desc: "A segmented RNA virus capable of rapid mutation (antigenic drift), necessitating annual vaccine updates." },
-            { trans: "contact", shape: "filament", env: "enveloped", genome: "rna", name: "Ebolavirus", desc: "A filovirus causing severe hemorrhagic fever. High lethality rate due to systemic vascular damage." },
-            { trans: "contact", shape: "bullet", env: "enveloped", genome: "rna", name: "Rabies Lyssavirus", desc: "A neurotropic virus that travels along neural pathways to the brain. Fatal once symptomatic." },
-            { trans: "contact", shape: "complex", env: "naked", genome: "dna", name: "Bacteriophage T4", desc: "A complex virus that specifically targets E. coli bacteria. Not pathogenic to humans." },
-            { trans: "vector", shape: "icosa", env: "enveloped", genome: "rna", name: "Dengue Virus", desc: "Transmitted by Aedes mosquitoes. Causes severe flu-like illness and potentially lethal complications." },
-            { trans: "water", shape: "icosa", env: "naked", genome: "rna", name: "Poliovirus", desc: "An enterovirus transmitted via the fecal-oral route. Can invade the central nervous system." },
-            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Herpes Simplex", desc: "Characterized by its ability to establish lifelong latent infection within sensory neurons." },
-            { trans: "water", shape: "helical", env: "naked", genome: "rna", name: "Tobacco Mosaic", desc: "A rigid rod-shaped virus affecting Solanaceae plants. The first virus ever discovered." },
-            { trans: "contact", shape: "icosa", env: "enveloped", genome: "rna", name: "HIV-1", desc: "A lentivirus that attacks the immune system (CD4+ T cells). Integrates into host DNA." },
-            { trans: "air", shape: "complex", env: "enveloped", genome: "dna", name: "Variola (Smallpox)", desc: "A large, complex DNA virus responsible for one of history's deadliest diseases. Eradicated." },
-            { trans: "air", shape: "icosa", env: "naked", genome: "rna", name: "Rhinovirus", desc: "The primary cause of the common cold. Rapid mutation allows it to evade immune memory." },
-            { trans: "air", shape: "icosa", env: "enveloped", genome: "dna", name: "Varicella Zoster", desc: "Causes chickenpox and shingles. Highly contagious via aerosols." },
-            { trans: "air", shape: "helical", env: "enveloped", genome: "dna", name: "Torque Teno Virus", desc: "A widespread Anellovirus found in most humans. Generally considered non-pathogenic." },
-            { trans: "air", shape: "bullet", env: "enveloped", genome: "rna", name: "VSV (Aerosol)", desc: "Vesicular Stomatitis Virus. While mainly affecting livestock, it can infect humans via lab aerosols." },
-            { trans: "air", shape: "filament", env: "enveloped", genome: "rna", name: "Ebola Reston", desc: "A strain of Ebolavirus that spreads via droplets in non-human primates." },
-            { trans: "air", shape: "icosa", env: "naked", genome: "dna", name: "Parvovirus B19", desc: "Causes 'Fifth Disease' (slapped cheek syndrome). Spreads via respiratory droplets." },
-            { trans: "air", shape: "helical", env: "naked", genome: "rna", name: "Wheat Streak Mosaic", desc: "A plant virus spread by wind-blown mites and pollen." },
-            { trans: "air", shape: "helical", env: "enveloped", genome: "rna", name: "Measles Morbillivirus", desc: "One of the most contagious viruses known. Remains infectious in air for up to 2 hours." },
-            { trans: "air", shape: "helical", env: "naked", genome: "dna", name: "Human Bocavirus", desc: "A parvovirus commonly associated with respiratory tract infections in children." },
-            { trans: "air", shape: "complex", env: "naked", genome: "dna", name: "Mycoplasma Phage", desc: "A virus that infects airborne Mycoplasma bacteria." },
-            { trans: "air", shape: "bullet", env: "naked", genome: "rna", name: "Orchid Fleck Virus", desc: "A plant rhabdovirus causing necrotic spots on orchids." },
-            { trans: "air", shape: "filament", env: "naked", genome: "dna", name: "Rudivirus", desc: "Infects archaea in high-temperature volcanic vents. Extremely stable." },
-            { trans: "vector", shape: "icosa", env: "enveloped", genome: "rna", name: "Zika Virus", desc: "A flavivirus linked to microcephaly in infants. Mosquito-borne." },
-            { trans: "vector", shape: "icosa", env: "naked", genome: "rna", name: "Colorado Tick Fever", desc: "A reovirus transmitted by wood ticks in mountainous regions." },
-            { trans: "vector", shape: "icosa", env: "enveloped", genome: "dna", name: "African Swine Fever", desc: "A giant DNA virus spread by soft ticks to pigs. Highly lethal to swine." },
-            { trans: "vector", shape: "helical", env: "enveloped", genome: "rna", name: "Rift Valley Fever", desc: "A phlebovirus affecting livestock and humans. Transmitted by mosquitoes." },
-            { trans: "vector", shape: "bullet", env: "enveloped", genome: "rna", name: "Chandipura Virus", desc: "A rhabdovirus transmitted by sandflies. Causes severe encephalitis." },
-            { trans: "vector", shape: "complex", env: "enveloped", genome: "dna", name: "Entomopoxvirus", desc: "A poxvirus that specifically infects insects." },
-            { trans: "vector", shape: "filament", env: "enveloped", genome: "rna", name: "Hartmannella Virus", desc: "A giant virus carried by amoeba vectors." },
-            { trans: "vector", shape: "helical", env: "naked", genome: "rna", name: "Tobacco Rattle", desc: "A plant virus transmitted by soil nematodes (worms)." },
-            { trans: "vector", shape: "icosa", env: "naked", genome: "dna", name: "Densonucleosis", desc: "A parvovirus that infects mosquitoes themselves." },
-            { trans: "vector", shape: "bullet", env: "naked", genome: "rna", name: "Lettuce Necrotic", desc: "A plant rhabdovirus spread by aphids." },
-            { trans: "vector", shape: "complex", env: "naked", genome: "dna", name: "Wolbachia Phage", desc: "Infects Wolbachia bacteria living inside insect hosts." },
-            { trans: "vector", shape: "filament", env: "naked", genome: "dna", name: "Insect Iridovirus", desc: "Causes infected insect larvae to turn an iridescent blue color." },
-            { trans: "vector", shape: "helical", env: "enveloped", genome: "dna", name: "Baculovirus", desc: "A pathogen used as a biological pesticide against caterpillars." },
-            { trans: "vector", shape: "icosa", env: "enveloped", genome: "dna", name: "Asfarvirus", desc: "The family containing African Swine Fever Virus." },
-            { trans: "vector", shape: "helical", env: "naked", genome: "dna", name: "Spiroplasma Phage", desc: "Infects bacteria found in the guts of insects." },
-            { trans: "water", shape: "icosa", env: "naked", genome: "rna", name: "Norovirus", desc: "The 'winter vomiting bug'. Extremely contagious and hardy in water systems." },
-            { trans: "water", shape: "icosa", env: "naked", genome: "dna", name: "Adenovirus 41", desc: "A specific strain of adenovirus adapted to the gut, causing diarrhea." },
-            { trans: "water", shape: "complex", env: "naked", genome: "dna", name: "Cholera Phage", desc: "A bacteriophage that kills Vibrio cholerae bacteria in contaminated water." },
-            { trans: "water", shape: "icosa", env: "enveloped", genome: "rna", name: "Hepatitis E", desc: "A liver infection transmitted via contaminated water in developing regions." },
-            { trans: "water", shape: "icosa", env: "enveloped", genome: "dna", name: "Cyprinid Herpesvirus", desc: "A lethal virus affecting Koi and Carp populations in ponds." },
-            { trans: "water", shape: "helical", env: "enveloped", genome: "rna", name: "Infectious Salmon Anemia", desc: "An orthomyxovirus affecting farmed Atlantic Salmon." },
-            { trans: "water", shape: "bullet", env: "enveloped", genome: "rna", name: "VHS Virus", desc: "Viral Hemorrhagic Septicemia. A deadly fish pathogen." },
-            { trans: "water", shape: "filament", env: "enveloped", genome: "rna", name: "Ebola (Theoretical)", desc: "Hypothetical scenario: Survival in liquid media." },
-            { trans: "water", shape: "complex", env: "enveloped", genome: "dna", name: "Mimivirus", desc: "A giant virus found in amoebas in water cooling towers." },
-            { trans: "water", shape: "helical", env: "naked", genome: "dna", name: "Halovirus", desc: "Infects halophilic archaea in high-salt water environments." },
-            { trans: "water", shape: "bullet", env: "naked", genome: "rna", name: "Orchid Fleck (Water)", desc: "Can spread via hydroponic water systems." },
-            { trans: "water", shape: "filament", env: "naked", genome: "dna", name: "Thermoproteus Virus", desc: "Found in boiling acidic water vents." },
-            { trans: "water", shape: "icosa", env: "enveloped", genome: "dna", name: "Ranavirus", desc: "A major threat to amphibian populations worldwide." },
-            { trans: "water", shape: "helical", env: "enveloped", genome: "dna", name: "Nimavirus", desc: "Causes White Spot Syndrome in shrimp." },
-            { trans: "contact", shape: "icosa", env: "naked", genome: "dna", name: "HPV", desc: "Human Papillomavirus. Transmitted via skin-to-skin contact. Causes warts." },
-            { trans: "contact", shape: "helical", env: "naked", genome: "rna", name: "Potato Virus X", desc: "Spreads between plants by direct contact of leaves or tools." },
-            { trans: "contact", shape: "icosa", env: "naked", genome: "rna", name: "Enterovirus D68", desc: "A respiratory virus that can spread via surface contact." },
-            { trans: "contact", shape: "helical", env: "enveloped", genome: "dna", name: "Epstein-Barr", desc: "Causes Infectious Mononucleosis. Spread via saliva sharing." },
-            { trans: "contact", shape: "bullet", env: "naked", genome: "rna", name: "Mushroom Bacilliform", desc: "Infects mushrooms via direct mycelial contact." },
-            { trans: "contact", shape: "filament", env: "naked", genome: "dna", name: "Lipothrixvirus", desc: "Infects thermophilic archaea. Extremely stable structure." },
-            { trans: "contact", shape: "complex", env: "enveloped", genome: "dna", name: "Molluscum Contagiosum", desc: "A poxvirus causing mild skin lesions. Spread by direct contact." },
-            { trans: "contact", shape: "helical", env: "enveloped", genome: "rna", name: "Nipah Virus", desc: "Transmitted via contact with infected bats, pigs, or their fluids." },
-            { trans: "contact", shape: "icosa", env: "enveloped", genome: "dna", name: "Hepatitis B", desc: "Bloodborne. Chronic liver infection." },
-            { trans: "contact", shape: "helical", env: "naked", genome: "dna", name: "Inovirus", desc: "A filamentous bacteriophage that causes chronic infection in bacteria." },
-            { trans: "contact", shape: "bullet", env: "enveloped", genome: "dna", name: "Bacillus Phage", desc: "A rare DNA virus with a bullet shape infecting bacteria." }
-        ];
+        // --- MATH FIX: GENERATE 80 COMBOS, SEPARATE 64 CLASSIFIED / 16 UNKNOWN ---
+        let VIRUS_DB = [];
+        let UNKNOWN_COMBOS = [];
+        
+        function generateDatabase() {
+            const traits = {
+                trans: ["air", "vector", "contact", "water"],
+                shape: ["icosa", "helical", "complex", "bullet", "filament"],
+                env: ["naked", "enveloped"],
+                genome: ["dna", "rna"]
+            };
+            
+            let allCombos = [];
+            // Generate all 5x4x2x2 = 80 combinations
+            traits.trans.forEach(t => traits.shape.forEach(s => traits.env.forEach(e => traits.genome.forEach(g => {
+                allCombos.push({ trans: t, shape: s, env: e, genome: g });
+            }))));
 
-        // --- SCENE ---
+            // Rank them by lethality (using our calculateRisk engine)
+            allCombos.forEach(c => c.riskScore = calculateRisk(c).score);
+            allCombos.sort((a, b) => b.riskScore - a.riskScore);
+
+            // The 16 deadliest are stripped from the database (Users must discover them)
+            UNKNOWN_COMBOS = allCombos.slice(0, 16);
+            
+            // The remaining 64 safely go into the database
+            const safeCombos = allCombos.slice(16);
+            
+            // Assign cool generic names to the 64 safe ones
+            safeCombos.forEach((c, index) => {
+                c.name = `Classified Strain-${1000 + index}`;
+                c.desc = `Standard structural pathogen. Threat level within manageable parameters.`;
+                VIRUS_DB.push(c);
+            });
+            
+            // Manually overwrite a few to have real names for flavor
+            const realNames = {
+                'air_icosa_enveloped_rna': { name: "SARS-CoV-2", desc: "The causative agent of COVID-19. Spike proteins facilitate entry into ACE2 receptors." },
+                'vector_icosa_enveloped_rna': { name: "Dengue Virus", desc: "Transmitted by Aedes mosquitoes. Causes severe flu-like illness." },
+                'contact_icosa_enveloped_dna': { name: "Herpes Simplex", desc: "Characterized by its ability to establish lifelong latent infection." }
+            };
+            
+            VIRUS_DB.forEach(v => {
+                let key = `${v.trans}_${v.shape}_${v.env}_${v.genome}`;
+                if(realNames[key]) {
+                    v.name = realNames[key].name;
+                    v.desc = realNames[key].desc;
+                }
+            });
+        }
+
+        // --- RISK ENGINE ---
+        function calculateRisk(user) {
+            let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
+            if(user.trans === 'air') { score+=50; r0=4.5; bsl="BSL-3"; } else if(user.trans === 'vector') { score+=25; r0=1.5; } else if(user.trans === 'water') { score+=30; r0=2.0; } else { score+=10; r0=0.8; }
+            if(user.genome === 'rna') { score+=20; } else { score+=10; }
+            if(user.shape === 'filament') { score+=15; bsl="BSL-4"; } if(user.shape === 'complex') { score+=20; } 
+            if(user.env === 'enveloped') { score+=10; } if(user.env === 'naked') { score+=20; }
+
+            let level = "LOW YIELD"; let color = "color-low";
+            if(score > 40) { level = "MODERATE THREAT"; color = "color-med"; }
+            if(score > 65) { level = "CATASTROPHIC"; color = "color-high"; bsl="BSL-4 (EXTREME)"; }
+            return { score, level, color, r0, bsl };
+        }
+
+        // Run the math fix immediately
+        generateDatabase();
+
+        // --- SCENE & LIGHTING ---
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.04);
-
+        scene.fog = new THREE.FogExp2(0x05070a, 0.04);
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
         camera.position.z = 12;
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        // PRESERVE DRAWING BUFFER IS REQUIRED TO TAKE SCREENSHOTS FOR SOCIAL SHARING
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
         
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.8;
+        controls.enableDamping = true; controls.dampingFactor = 0.05; controls.autoRotate = true; controls.autoRotateSpeed = 0.8;
 
-        // --- LIGHTING ---
         scene.add(new THREE.AmbientLight(0xffffff, 0.1));
         const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); keyLight.position.set(5, 5, 10); scene.add(keyLight);
-        const rimLight = new THREE.SpotLight(0x0088ff, 8); rimLight.position.set(-10, 5, -10); rimLight.lookAt(0,0,0); scene.add(rimLight);
-        const fillLight = new THREE.PointLight(0xffaa00, 1); fillLight.position.set(5, -10, 5); scene.add(fillLight);
+        const rimLight = new THREE.SpotLight(0x00f0ff, 8); rimLight.position.set(-10, 5, -10); rimLight.lookAt(0,0,0); scene.add(rimLight);
+        const fillLight = new THREE.PointLight(0xff0055, 1); fillLight.position.set(5, -10, 5); scene.add(fillLight);
 
         const virusGroup = new THREE.Group();
         scene.add(virusGroup);
 
         // --- MATERIALS ---
         const matCapsid = new THREE.MeshStandardMaterial({ color: 0x2a3b4c, roughness: 0.5, metalness: 0.4 });
-        const matEnv = new THREE.MeshPhysicalMaterial({ 
-            color: 0x88ccff, transparent: true, opacity: 0.25, transmission: 0.4, roughness: 0.2, 
-            clearcoat: 1.0, side: THREE.DoubleSide, depthWrite: false
-        });
-        const matSpike = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.5 }); // Dark Red
-        const matDNA = new THREE.MeshBasicMaterial({ color: 0x44ffaa, wireframe: true }); 
-        const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa44, wireframe: true });
+        const matEnv = new THREE.MeshPhysicalMaterial({ color: 0x88ccff, transparent: true, opacity: 0.25, transmission: 0.4, roughness: 0.2, clearcoat: 1.0, side: THREE.DoubleSide, depthWrite: false });
+        const matSpike = new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.5 }); // Neon Red Spikes
+        const matDNA = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true }); 
+        const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true });
 
-        // --- BUILDER (FIXED) ---
+        // --- MODEL BUILDER ---
         window.updateModel = function() {
             while(virusGroup.children.length > 0) virusGroup.remove(virusGroup.children[0]);
             
@@ -253,20 +342,17 @@
             const env = document.getElementById('envelope').value;
             const genome = document.getElementById('genome').value;
 
-            // 1. GENOME
+            // Genome
             const gMat = (genome === 'dna') ? matDNA : matRNA;
             const coil = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.15, 100, 16), gMat);
             if(shape==='filament') { coil.scale.set(0.3,0.3,1.5); coil.position.x=0; } 
             else if(shape!=='complex') { coil.scale.set(0.5,0.5,2.0); coil.rotation.y=Math.PI/2; }
             if(shape!=='complex') virusGroup.add(coil);
 
-            // 2. CAPSID & ENVELOPE
+            // Capsid
             let coreGeo, envGeo;
-
             if(shape === 'filament') {
-                class WormCurve extends THREE.Curve {
-                    getPoint(t) { return new THREE.Vector3( (t-0.5)*10, Math.sin(t*Math.PI*3)*1.5, Math.cos(t*Math.PI*2)*0.5 ); }
-                }
+                class WormCurve extends THREE.Curve { getPoint(t) { return new THREE.Vector3( (t-0.5)*10, Math.sin(t*Math.PI*3)*1.5, Math.cos(t*Math.PI*2)*0.5 ); } }
                 const path = new WormCurve();
                 coreGeo = new THREE.TubeGeometry(path, 64, 0.6, 16, false);
                 envGeo = new THREE.TubeGeometry(path, 64, 1.0, 16, false); 
@@ -276,8 +362,7 @@
                 const h = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1), matCapsid); h.position.y=1.5;
                 const t = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,2.5), matCapsid); t.position.y=-0.5;
                 const l = new THREE.Mesh(new THREE.ConeGeometry(1.5,0.5,6,1,true), matCapsid); l.position.y=-1.8; l.rotation.x=Math.PI;
-                group.add(h); group.add(t); group.add(l);
-                virusGroup.add(group);
+                group.add(h); group.add(t); group.add(l); virusGroup.add(group);
                 
                 const envG = new THREE.Group();
                 const eh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6,1), matEnv); eh.position.y=1.5;
@@ -285,29 +370,14 @@
                 envG.add(eh); envG.add(et);
                 if(env==='enveloped') virusGroup.add(envG);
             }
-            else if(shape === 'icosa') {
-                coreGeo = new THREE.IcosahedronGeometry(1.5, 1);
-                envGeo = new THREE.SphereGeometry(2.0, 64, 64);
-            } else if (shape === 'helical') {
-                coreGeo = new THREE.CylinderGeometry(0.7, 0.7, 4, 32); coreGeo.rotateZ(Math.PI/2);
-                envGeo = new THREE.CylinderGeometry(1.1, 1.1, 4.4, 32); envGeo.rotateZ(Math.PI/2);
-            } else if (shape === 'bullet') {
-                coreGeo = new THREE.CapsuleGeometry(0.8, 2, 4, 16); coreGeo.rotateZ(Math.PI/2);
-                envGeo = new THREE.CapsuleGeometry(1.1, 2.3, 4, 16); envGeo.rotateZ(Math.PI/2);
-            }
+            else if(shape === 'icosa') { coreGeo = new THREE.IcosahedronGeometry(1.5, 1); envGeo = new THREE.SphereGeometry(2.0, 64, 64); } 
+            else if (shape === 'helical') { coreGeo = new THREE.CylinderGeometry(0.7, 0.7, 4, 32); coreGeo.rotateZ(Math.PI/2); envGeo = new THREE.CylinderGeometry(1.1, 1.1, 4.4, 32); envGeo.rotateZ(Math.PI/2); } 
+            else if (shape === 'bullet') { coreGeo = new THREE.CapsuleGeometry(0.8, 2, 4, 16); coreGeo.rotateZ(Math.PI/2); envGeo = new THREE.CapsuleGeometry(1.1, 2.3, 4, 16); envGeo.rotateZ(Math.PI/2); }
 
-            if(shape !== 'complex') {
-                const core = new THREE.Mesh(coreGeo, matCapsid);
-                virusGroup.add(core);
-            }
+            if(shape !== 'complex') { virusGroup.add(new THREE.Mesh(coreGeo, matCapsid)); }
+            if(env === 'enveloped' && shape !== 'complex') { virusGroup.add(new THREE.Mesh(envGeo, matEnv)); }
 
-            // 3. ENVELOPE (Standard)
-            if(env === 'enveloped' && shape !== 'complex') {
-                const eMesh = new THREE.Mesh(envGeo, matEnv);
-                virusGroup.add(eMesh);
-            }
-
-            // 4. SPIKES (Thorn - Pointing Out)
+            // Spikes
             if(env === 'enveloped') {
                 const count = (shape==='filament') ? 100 : 70;
                 for(let i=0; i<count; i++) {
@@ -317,46 +387,26 @@
                     if(shape==='icosa') {
                         const phi = Math.acos(-1+(2*i)/count), theta = Math.sqrt(count*Math.PI)*phi;
                         const pos = new THREE.Vector3().setFromSphericalCoords(2.0, phi, theta);
-                        spike.position.copy(pos);
-                        spike.lookAt(0,0,0); spike.rotateX(-Math.PI/2);
+                        spike.position.copy(pos); spike.lookAt(0,0,0); spike.rotateX(-Math.PI/2);
                     } 
                     else if (shape==='filament') {
-                        // FIXED MATH: Calculate normal from curve derivative
-                        const t = i/count;
-                        const angle = t * Math.PI * 8;
-                        const cx = (t-0.5)*10; 
-                        const cy = Math.sin(t*Math.PI*3)*1.5;
-                        const cz = Math.cos(t*Math.PI*2)*0.5;
-                        
-                        // Approximate tangent vector
-                        const tx = 10; 
-                        const ty = Math.cos(t*Math.PI*3)*1.5 * Math.PI*3;
-                        const tz = -Math.sin(t*Math.PI*2)*0.5 * Math.PI*2;
+                        const t = i/count; const angle = t * Math.PI * 8;
+                        const cx = (t-0.5)*10, cy = Math.sin(t*Math.PI*3)*1.5, cz = Math.cos(t*Math.PI*2)*0.5;
+                        const tx = 10, ty = Math.cos(t*Math.PI*3)*1.5 * Math.PI*3, tz = -Math.sin(t*Math.PI*2)*0.5 * Math.PI*2;
                         const tangent = new THREE.Vector3(tx, ty, tz).normalize();
-                        
-                        // Create perpendicular vector (random rotation around tangent)
                         const up = new THREE.Vector3(0, 1, 0);
                         let normal = new THREE.Vector3().crossVectors(tangent, up).normalize();
-                        if(normal.length() === 0) normal = new THREE.Vector3(0,0,1); // Fallback
-                        
-                        // Rotate normal around tangent to distribute around tube
+                        if(normal.length() === 0) normal = new THREE.Vector3(0,0,1);
                         normal.applyAxisAngle(tangent, angle);
-                        
-                        // Position = Point on curve + Normal * Radius
-                        const pos = new THREE.Vector3(cx, cy, cz).add(normal.multiplyScalar(1.0)); // 1.0 is env radius
-                        
+                        const pos = new THREE.Vector3(cx, cy, cz).add(normal.multiplyScalar(1.0));
                         spike.position.copy(pos);
-                        // Look at position + normal (pointing away from core)
                         const target = pos.clone().add(normal);
-                        spike.lookAt(target); 
-                        spike.rotateX(Math.PI/2);
+                        spike.lookAt(target); spike.rotateX(Math.PI/2);
                     }
                     else if (shape==='complex') {
                         const phi = Math.acos(-1+(2*i)/30), theta = Math.sqrt(30*Math.PI)*phi;
                         const pos = new THREE.Vector3().setFromSphericalCoords(1.6, phi, theta);
-                        pos.y += 1.5;
-                        spike.position.copy(pos);
-                        spike.lookAt(0, 1.5, 0); spike.rotateX(-Math.PI/2);
+                        pos.y += 1.5; spike.position.copy(pos); spike.lookAt(0, 1.5, 0); spike.rotateX(-Math.PI/2);
                     }
                     else {
                         const a = (i/count)*Math.PI*10, x = (i/count)*4-2;
@@ -368,48 +418,19 @@
             }
         };
 
-        // --- RISK ENGINE ---
         let currentConfig = {};
-
-        function calculateRisk(user) {
-            let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
-            
-            if(user.trans === 'air') { score+=50; r0=4.5; bsl="BSL-3"; } 
-            else if(user.trans === 'vector') { score+=25; r0=1.5; }
-            else if(user.trans === 'water') { score+=30; r0=2.0; }
-            else { score+=10; r0=0.8; }
-            
-            if(user.genome === 'rna') { score+=20; } else { score+=10; }
-            
-            if(user.shape === 'filament') { score+=15; bsl="BSL-4"; }
-            if(user.shape === 'complex') { score+=20; } 
-
-            if(user.env === 'enveloped') { score+=10; }
-            if(user.env === 'naked') { score+=20; }
-
-            let level = "LOW";
-            let color = "color-low";
-            if(score > 40) { level = "MODERATE"; color = "color-med"; }
-            if(score > 65) { level = "HIGH"; color = "color-high"; }
-
-            return { score, level, color, r0, bsl };
-        }
+        let newlyDiscoveredName = ""; // Stores the name for sharing
 
         window.analyzeVirus = function() {
-            const user = {
-                trans: document.getElementById('trans').value,
-                shape: document.getElementById('shape').value,
-                env: document.getElementById('envelope').value,
-                genome: document.getElementById('genome').value
-            };
-            currentConfig = user;
-            controls.autoRotate = false;
+            const user = { trans: document.getElementById('trans').value, shape: document.getElementById('shape').value, env: document.getElementById('envelope').value, genome: document.getElementById('genome').value };
+            currentConfig = user; controls.autoRotate = false;
 
+            // Check if it's in the 64 known ones
             const match = VIRUS_DB.find(v => v.trans===user.trans && v.shape===user.shape && v.env===user.env && v.genome===user.genome);
             const risk = calculateRisk(user);
 
             document.getElementById('risk-val-text').innerText = risk.level;
-            document.getElementById('risk-val-text').style.color = (risk.level==="HIGH" ? "#d00" : (risk.level==="MODERATE"?"#fa0":"#fff"));
+            document.getElementById('risk-val-text').style.color = (risk.level==="CATASTROPHIC" ? "#ff0055" : (risk.level==="MODERATE THREAT"?"#ffaa00":"#00f0ff"));
             document.getElementById('r0-val').innerText = risk.r0;
             document.getElementById('bsl-val').innerText = risk.bsl;
             
@@ -423,33 +444,27 @@
             const form = document.getElementById('discovery-form');
             const matchBtns = document.getElementById('match-buttons');
             const simBox = document.getElementById('sim-box');
+            const shareCont = document.getElementById('share-btn-container');
+            
+            // Reset share button visibility
+            shareCont.style.display = 'none';
 
             if(match) {
                 indicator.className = "status-dot dot-match";
-                statusText.innerText = "DATABASE MATCH CONFIRMED";
-                statusText.style.color = "#0088ff";
+                statusText.innerText = "DATABASE MATCH: CLASSIFIED VIRUS";
+                statusText.style.color = "#00f0ff";
                 document.getElementById('res-title').innerText = match.name;
                 document.getElementById('res-desc').innerText = match.desc;
-                form.style.display = 'none';
-                simBox.style.display = 'none';
-                matchBtns.style.display = 'flex';
+                form.style.display = 'none'; simBox.style.display = 'none'; matchBtns.style.display = 'flex';
             } else {
+                // If it's not in the 64, it's one of the 16 Unknowns!
                 indicator.className = "status-dot dot-new";
                 statusText.innerText = "NO DATABASE MATCH";
-                statusText.style.color = "#ffaa00";
-                document.getElementById('res-title').innerText = "UNKNOWN PATHOGEN";
-                document.getElementById('res-desc').innerText = "Unique structural configuration detected.";
+                statusText.style.color = "#ff0055";
+                document.getElementById('res-title').innerText = "UNCLASSIFIED PATHOGEN";
+                document.getElementById('res-desc').innerText = "Highly anomalous structural configuration detected. Pandemic potential exceeds known parameters. Awaiting scientific designation.";
                 
-                let bestScore=0, bestMatch=VIRUS_DB[0];
-                VIRUS_DB.forEach(v => {
-                    let s = 0;
-                    if(v.shape===user.shape) s+=40; if(v.env===user.env) s+=30;
-                    if(v.genome===user.genome) s+=20; if(v.trans===user.trans) s+=10;
-                    if(s > bestScore) { bestScore=s; bestMatch=v; }
-                });
-
-                simBox.style.display = 'block';
-                document.getElementById('sim-text').innerText = `${bestMatch.name} (${bestScore}% Similarity)`;
+                simBox.style.display = 'none';
                 form.style.display = 'block';
                 matchBtns.style.display = 'none';
             }
@@ -459,12 +474,52 @@
         window.saveNewVirus = function() {
             const name = document.getElementById('virus-name-input').value;
             if(!name) return;
+            newlyDiscoveredName = name;
+            
             let vault = JSON.parse(localStorage.getItem('virusVault') || "[]");
             vault.push({ name: name, config: currentConfig });
             localStorage.setItem('virusVault', JSON.stringify(vault));
+            
             renderVault();
-            closeOverlay();
+            
+            // Hide the input form, reveal the share button
+            document.getElementById('discovery-form').style.display = 'none';
+            document.getElementById('share-btn-container').style.display = 'block';
+            document.getElementById('match-buttons').style.display = 'flex';
             document.getElementById('virus-name-input').value = "";
+        };
+
+        // --- SOCIAL SHARE FUNCTION ---
+        window.shareToSocials = async function() {
+            const canvas = document.querySelector('canvas');
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            try {
+                // Convert base64 canvas image to a File object
+                const blob = await (await fetch(dataUrl)).blob();
+                const file = new File([blob], newlyDiscoveredName + '.png', { type: 'image/png' });
+
+                const shareData = {
+                    title: 'I engineered a new pathogen!',
+                    text: `I just synthesized the unclassified BSL-4 pathogen [ ${newlyDiscoveredName} ] at the IISc Terminal. Can you beat my threat score? Play here: `,
+                    url: window.location.href,
+                    files: [file] // Attaches the 3D model screenshot
+                };
+
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                } else {
+                    // Fallback for laptops/browsers that don't support native sharing
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = newlyDiscoveredName + '.png';
+                    a.click();
+                    alert("Image downloaded! Copy this link to share: " + window.location.href);
+                }
+            } catch (err) {
+                console.error("Sharing failed", err);
+                alert("Sharing failed. Try downloading instead!");
+            }
         };
 
         window.closeOverlay = function() {
@@ -479,7 +534,7 @@
             vault.forEach((v, idx) => {
                 const item = document.createElement('div');
                 item.className = 'vault-item';
-                item.innerHTML = `<div class="v-name">${v.name}</div><div class="v-meta">${v.config.genome.toUpperCase()} | ${v.config.shape}</div>`;
+                item.innerHTML = `<div class="v-name">${v.name}</div><div class="v-meta">${v.config.genome.toUpperCase()} | ${v.config.shape} | CATASTROPHIC</div>`;
                 item.onclick = () => loadVirus(idx);
                 list.appendChild(item);
             });
