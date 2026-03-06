@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pathogen Threat Terminal Final</title>
+    <title>Pathogen Threat Terminal V24</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- THEME: BSL-4 TERMINAL --- */
@@ -34,7 +34,11 @@
         }
         .sys-header span { color: #fff; }
 
-        h1 { font-family: 'Rajdhani', sans-serif; color: #fff; font-size: 42px; text-align: left; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0,240,255,0.5); }
+        h1 { 
+            font-family: 'Rajdhani', sans-serif; color: #fff; font-size: 42px; 
+            text-align: left; margin: 0 0 5px 0; font-weight: 700; letter-spacing: 2px; 
+            text-transform: uppercase; text-shadow: 0 0 10px rgba(0,240,255,0.5);
+        }
         .subtitle { font-family: 'Rajdhani', sans-serif; color: #ff0055; font-size: 16px; letter-spacing: 4px; margin-bottom: 30px; font-weight: 600; }
 
         .control-group { margin-bottom: 25px; position: relative; flex-shrink: 0; }
@@ -49,6 +53,7 @@
         select:focus { outline: none; border-color: #00f0ff; background: rgba(0, 240, 255, 0.1); }
         select option { background: #05070a; color: #fff; }
 
+        /* BUTTON AT BOTTOM */
         #scan-btn {
             margin-top: 10px; padding: 18px; font-size: 16px; font-weight: 700; font-family: 'Rajdhani', sans-serif;
             background: transparent; color: #ff0055; border: 2px solid #ff0055; border-radius: 0px;
@@ -58,39 +63,49 @@
         #scan-btn:hover { background: #ff0055; color: #fff; box-shadow: 0 0 25px rgba(255, 0, 85, 0.6); }
 
         /* GLOBAL VAULT (RIGHT) */
-        #vault-panel { position: absolute; top: 0; right: 0; width: 300px; height: 100%; background: rgba(5, 7, 10, 0.85); border-left: 1px solid #333; padding: 30px 20px; overflow-y: auto; z-index: 10; }
+        #vault-panel {
+            position: absolute; top: 0; right: 0; width: 300px; height: 100%;
+            background: rgba(5, 7, 10, 0.85); border-left: 1px solid #333;
+            padding: 30px 20px; overflow-y: auto; pointer-events: none; z-index: 10;
+        }
         #vault-panel * { pointer-events: auto; }
-        #vault-title { color: #ffaa00; font-size: 14px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 10px; }
-        .vault-item { padding: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; border: 1px solid #222; background: rgba(255,255,255,0.02); position: relative; }
+        #vault-title { 
+            color: #ffaa00; font-size: 14px; font-weight: bold; letter-spacing: 2px; 
+            margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 10px; 
+        }
+        .vault-item { 
+            padding: 12px; margin-bottom: 8px;
+            cursor: pointer; transition: 0.2s; border: 1px solid #222; background: rgba(255,255,255,0.02);
+            position: relative;
+        }
         .vault-item::before { content: ""; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: #ffaa00; opacity: 0.5; }
         .vault-item:hover { background: rgba(255,170,0,0.1); border-color: #ffaa00; }
         .v-name { color: #fff; font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .v-meta { color: #888; font-size: 11px; text-transform: uppercase; margin-top: 5px; }
 
-        /* MODAL (RESTYLED TO MATCH HOME VIBE) */
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        #result-box { 
-            width: 700px; 
-            background: rgba(5, 7, 10, 0.95); 
-            border: 1px solid #00f0ff; 
-            padding: 40px 50px; 
-            position: relative; 
-            box-shadow: 0 0 40px rgba(0,240,255,0.15); 
-            max-height: 90vh; 
-            overflow-y: auto; 
+        /* MODAL */
+        #overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2,3,5,0.95); z-index: 1000;
+            justify-content: center; align-items: center; backdrop-filter: blur(10px);
+        }
+        #result-box {
+            width: 700px; background: #080a0e; border: 1px solid #ff0055;
+            padding: 50px; position: relative;
+            box-shadow: 0 0 50px rgba(255,0,85,0.2);
+            max-height: 90vh; overflow-y: auto;
         }
         #result-box::-webkit-scrollbar { width: 4px; }
-        #result-box::-webkit-scrollbar-thumb { background: #00f0ff; }
-
-        .modal-sys-header { font-size: 12px; color: #00f0ff; margin-bottom: 20px; letter-spacing: 2px; border-bottom: 1px dashed #333; padding-bottom: 10px; text-transform: uppercase; }
+        #result-box::-webkit-scrollbar-thumb { background: #ff0055; }
 
         #res-status { font-size: 14px; letter-spacing: 3px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .status-dot { width: 10px; height: 10px; display: inline-block; }
         .dot-match { background: #00f0ff; box-shadow: 0 0 15px #00f0ff; }
         .dot-new { background: #ff0055; box-shadow: 0 0 15px #ff0055; }
-        #res-title { font-family: 'Rajdhani', sans-serif; font-size: 46px; color: #fff; margin: 0 0 15px 0; font-weight: 700; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        #res-title { font-family: 'Rajdhani', sans-serif; font-size: 50px; color: #fff; margin: 0 0 20px 0; font-weight: 700; text-transform: uppercase; }
         #res-desc { color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 30px; border-left: 2px solid #333; padding-left: 20px; }
 
+        /* RISK METER */
         #risk-container { background: #05070a; padding: 25px; margin-bottom: 25px; border: 1px solid #222; }
         .risk-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: flex-end; }
         .risk-label { color: #666; font-size: 12px; letter-spacing: 2px; }
@@ -105,18 +120,22 @@
 
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        #discovery-form { display: none; margin-top: 25px; border-top: 1px dashed #333; padding-top: 25px; }
-        #virus-name-input { padding: 15px 10px; width: 100%; background: rgba(0,240,255,0.05); border: 1px solid #333; color: #fff; font-size: 20px; font-family: 'Share Tech Mono', monospace; margin-bottom: 20px; box-sizing: border-box; }
-        #virus-name-input:focus { outline: none; border-color: #ff0055; background: rgba(255,0,85,0.05); }
+        /* FORM & BUTTONS */
+        #discovery-form { display: none; margin-top: 25px; border-top: 1px solid #333; padding-top: 25px; }
+        #virus-name-input { 
+            padding: 15px 10px; width: 100%; background: rgba(255,0,85,0.05); border: 1px solid #444; 
+            color: #fff; font-size: 20px; font-family: 'Share Tech Mono', monospace; margin-bottom: 20px; box-sizing: border-box;
+        }
+        #virus-name-input:focus { outline: none; border-color: #ff0055; }
         .btn-group { display: flex; gap: 15px; justify-content: flex-end; }
-        button.action-btn { padding: 12px 30px; background: #111; color: #fff; border: 1px solid #444; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; transition: 0.2s; }
+        button.action-btn { padding: 12px 30px; background: #111; color: #fff; border: 1px solid #444; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
         button.action-btn:hover { background: #333; }
-        button.primary { background: transparent; border: 1px solid #ff0055; color: #ff0055; }
-        button.primary:hover { background: #ff0055; color: #fff; box-shadow: 0 0 15px rgba(255,0,85,0.5); }
+        button.primary { background: #ff0055; border: none; color: #fff; }
+        button.primary:hover { background: #cc0044; box-shadow: 0 0 15px rgba(255,0,85,0.5); }
         
         #share-btn-container { display: none; margin-top: 15px; }
-        button.share-btn { background: transparent; color: #00f0ff; border: 1px solid #00f0ff; padding: 12px 30px; font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%; transition: 0.2s; }
-        button.share-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.5); }
+        button.share-btn { background: #00f0ff; color: #000; border: none; padding: 12px 30px; font-family: 'Rajdhani', sans-serif; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; width: 100%; transition: 0.2s; }
+        button.share-btn:hover { background: #00ccdd; box-shadow: 0 0 15px rgba(0,240,255,0.5); }
 
         #instructions { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: #00f0ff; font-size: 12px; letter-spacing: 3px; pointer-events: none; opacity: 0.6; }
     </style>
@@ -133,20 +152,54 @@
             CLEARANCE: <span>LEVEL 4 BIO-SAFETY</span><br>
             DATABASE : <span>64 CLASSIFIED // 16 UNKNOWN</span>
         </div>
+        
         <h1>WHY-RUS</h1>
         <div class="subtitle">[ THREAT DOSSIER ]</div>
-        <div class="control-group"><label>Transmission Vector</label><select id="trans" onchange="updateModel()"><option value="air">Airborne (Aerosol)</option><option value="vector">Vector (Arthropod)</option><option value="contact">Direct Contact</option><option value="water">Waterborne</option></select></div>
-        <div class="control-group"><label>Capsid Morphology</label><select id="shape" onchange="updateModel()"><option value="icosa">Icosahedral</option><option value="helical">Helical</option><option value="complex">Complex (Binary)</option><option value="bullet">Bullet (Rhabdo)</option><option value="filament">Filamentous</option></select></div>
-        <div class="control-group"><label>Viral Envelope</label><select id="envelope" onchange="updateModel()"><option value="naked">Non-Enveloped (Naked)</option><option value="enveloped">Lipid Enveloped</option></select></div>
-        <div class="control-group"><label>Genetic Payload</label><select id="genome" onchange="updateModel()"><option value="dna">DNA (Double Stranded)</option><option value="rna">RNA (Single Stranded)</option></select></div>
+        
+        <div class="control-group">
+            <label>Transmission Vector</label>
+            <select id="trans" onchange="updateModel()">
+                <option value="air">Airborne (Aerosol)</option>
+                <option value="vector">Vector (Arthropod)</option>
+                <option value="contact">Direct Contact</option>
+                <option value="water">Waterborne</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Capsid Morphology</label>
+            <select id="shape" onchange="updateModel()">
+                <option value="icosa">Icosahedral</option>
+                <option value="helical">Helical</option>
+                <option value="complex">Complex (Binary)</option>
+                <option value="bullet">Bullet (Rhabdo)</option>
+                <option value="filament">Filamentous</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Viral Envelope</label>
+            <select id="envelope" onchange="updateModel()">
+                <option value="naked">Non-Enveloped (Naked)</option>
+                <option value="enveloped">Lipid Enveloped</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Genetic Payload</label>
+            <select id="genome" onchange="updateModel()">
+                <option value="dna">DNA (Double Stranded)</option>
+                <option value="rna">RNA (Single Stranded)</option>
+            </select>
+        </div>
+
         <button id="scan-btn" onclick="analyzeVirus()">RUN SEQUENCE ANALYSIS</button>
     </div>
 
-    <div id="vault-panel"><div id="vault-title">// GLOBAL DISCOVERY LOG</div><div id="vault-list"></div></div>
+    <div id="vault-panel">
+        <div id="vault-title">// GLOBAL DISCOVERY LOG</div>
+        <div id="vault-list"></div>
+    </div>
 
     <div id="overlay">
         <div id="result-box">
-            <div class="modal-sys-header">SYS.LOG // SEQUENCE ANALYSIS REPORT</div>
             <div id="res-status"><span class="status-dot" id="dot-indicator"></span><span id="status-text">ANALYSIS COMPLETE</span></div>
             <h1 id="res-title">VIRUS NAME</h1>
             <p id="res-desc">Description...</p>
@@ -173,7 +226,7 @@
             </div>
             
             <div class="btn-group" id="match-buttons" style="margin-top: 20px;">
-                <button class="action-btn" style="border-color: #00f0ff; color: #00f0ff;" onclick="closeOverlay()">Close Dossier</button>
+                <button class="action-btn" onclick="closeOverlay()">Close Dossier</button>
             </div>
         </div>
     </div>
@@ -182,31 +235,41 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // SYNC CREDENTIALS
-        const BIN_ID = "69ab2c49ae596e708f66e736"; 
-        const API_KEY = "$2a$10$4jgoINdTRJ5rYCDsDrIm0u/VeJyFkSt/dzyVWFVARBOtTp5tEBQay"; 
+        // ==========================================
+        // 1. PUBLIC JSONBIN CREDENTIALS (LIVE)
+        // ==========================================
+        const BIN_ID = "69ab2c49ae596e708f66e736";
+        const API_KEY = "$2a$10$4jgoINdTRJ5rYCDsDrIm0u/VeJyFkSt/dzyVWFVARBOtTp5tEBQay";
 
-        let UNCLASSIFIED_KEYS = [];
+        // ==========================================
+        // 2. EXACT 64/16 CLASSIFICATION ENGINE
+        // ==========================================
+        let UNCLASSIFIED_KEYS = []; 
         let CLASSIFIED_DB = {}; 
 
-        // --- MATH FIXED RISK ENGINE (MAX EXACTLY 100) ---
+        // V24 EXACT MATH ENGINE
         function calculateRisk(user) {
             let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
             
+            // MAX TRANS = 45
             if(user.trans === 'air') { score+=45; r0=4.8; bsl="BSL-3"; } 
             else if(user.trans === 'water') { score+=25; r0=2.5; } 
             else if(user.trans === 'vector') { score+=15; r0=1.5; } 
             else { score+=5; r0=1.1; }
             
+            // MAX GENOME = 25
             if(user.genome === 'rna') { score+=25; } else { score+=5; }
             
+            // MAX SHAPE = 15
             if(user.shape === 'filament') { score+=15; bsl="BSL-4"; } 
             else if(user.shape === 'complex') { score+=10; } 
             else if(user.shape === 'bullet') { score+=8; }
             else { score+=5; }
             
+            // MAX ENVELOPE = 15
             if(user.env === 'naked') { score+=15; } else { score+=5; }
 
+            // TOTAL POSSIBLE MAX = 45 + 25 + 15 + 15 = 100
             let level = "LOW YIELD"; let color = "color-low";
             if(score >= 45) { level = "MODERATE THREAT"; color = "color-med"; }
             if(score >= 70) { level = "SEVERE THREAT"; color = "color-sev"; }
@@ -215,42 +278,32 @@
             return { score, level, color, r0, bsl };
         }
 
-        // --- TRUE BIOLOGICAL IDENTITY ENGINE ---
         function initializeSystem() {
+            // Famous exact 1-to-1 matches to ensure lore accuracy
             const EXACT_MATCHES = {
                 "air_icosa_enveloped_rna": { name: "SARS-CoV-2", desc: "Agent of COVID-19. Spike proteins facilitate entry into ACE2 receptors. High aerosol stability." },
                 "contact_filament_enveloped_rna": { name: "Ebolavirus", desc: "Causes severe hemorrhagic fever. Extreme lethality due to systemic vascular damage." },
                 "contact_bullet_enveloped_rna": { name: "Rabies Lyssavirus", desc: "Neurotropic virus. Fatal once symptomatic. High affinity for neural tissue." },
                 "vector_icosa_enveloped_rna": { name: "Dengue Virus", desc: "Mosquito-borne flavivirus. Causes high fever and hemorrhagic complications." },
-                "water_icosa_naked_rna": { name: "Poliovirus", desc: "Fecal-oral transmission. Invades central nervous system; highly resistant naked capsid." },
+                "water_icosa_naked_rna": { name: "Poliovirus", desc: "Fecal-oral transmission. Invades central nervous system; highly resistant capsid." },
                 "contact_icosa_enveloped_dna": { name: "Herpes Simplex", desc: "Lifelong latency in sensory neurons. Characterized by periodic reactivation." },
-                "air_complex_enveloped_dna": { name: "Variola (Smallpox)", desc: "Brick-shaped complex DNA virus. Historically one of earth's deadliest agents. Eradicated globally." },
-                "air_helical_enveloped_rna": { name: "Influenza A", desc: "Segmented RNA virus capable of rapid mutation (antigenic drift)." },
-                "air_icosa_naked_dna": { name: "Adenovirus", desc: "Robust pathogen causing respiratory infections. High environmental resistance." },
-                "air_icosa_naked_rna": { name: "Rhinovirus", desc: "Primary cause of the common cold. Rapid mutation allows it to evade immune memory." },
-                "contact_icosa_enveloped_rna": { name: "HIV-1", desc: "Lentivirus that attacks the immune system (CD4+ T cells) and integrates into host DNA." },
-                "contact_icosa_naked_dna": { name: "Human Papillomavirus (HPV)", desc: "Transmitted via skin-to-skin contact. Capable of causing cellular mutations." },
-                "vector_helical_enveloped_rna": { name: "Rift Valley Fever", desc: "Phlebovirus affecting livestock and humans. Transmitted by mosquitoes." },
-                "water_icosa_naked_dna": { name: "Hepatitis A", desc: "Liver infection transmitted via contaminated water sources." },
-                "contact_complex_enveloped_dna": { name: "Monkeypox Virus", desc: "Zoonotic orthopoxvirus causing symptomatic dermal lesions." },
-                "water_helical_naked_rna": { name: "Tobacco Mosaic Virus", desc: "Rigid rod-shaped plant virus. The first virus ever discovered." },
-                "contact_complex_naked_dna": { name: "Bacteriophage T4", desc: "Complex virus specifically targeting bacteria. Non-pathogenic to humans." },
-                "vector_icosa_enveloped_dna": { name: "African Swine Fever", desc: "Giant DNA virus spread by ticks. Highly lethal to swine." },
-                "water_complex_naked_dna": { name: "Cholera Phage", desc: "Bacteriophage that hunts Vibrio cholerae in contaminated water." }
+                "air_complex_enveloped_dna": { name: "Variola (Smallpox)", desc: "Brick-shaped complex DNA virus. Historically one of earth's deadliest agents." }
             };
 
+            // Exactly enough real virus names to fill out the rest of the 64 classified list
             let REMAINING_NAMES = [
                 "Marburg Marburgvirus", "Lassa Virus", "Nipah Virus", "Hendra Virus", "Machupo Virus", "Crimean-Congo Virus", 
                 "Yellow Fever Virus", "Zika Virus", "Chikungunya Virus", "Hantavirus", "Hepatitis C", "Measles Morbillivirus", 
                 "Mumps Orthorubulavirus", "Rubella Virus", "Respiratory Syncytial Virus", "Norovirus", "Rotavirus", "Astrovirus", 
                 "Cytomegalovirus", "Epstein-Barr", "Varicella Zoster", "Parvovirus B19", "Coxsackievirus", "Enterovirus D68", 
                 "Echovirus", "West Nile Virus", "Japanese Encephalitis", "Tick-borne Encephalitis", "Colorado Tick Fever", 
-                "Mycoplasma Phage", "Orchid Fleck Virus", "Rudivirus", "Chandipura Virus", "Entomopoxvirus", "Hartmannella Virus", 
-                "Tobacco Rattle Virus", "Densonucleosis Virus", "Lettuce Necrotic Virus", "Wolbachia Phage", "Insect Iridovirus", 
-                "Baculovirus", "Spiroplasma Phage", "Cyprinid Herpesvirus", "Infectious Salmon Anemia", "VHS Virus", 
+                "Bacteriophage T4", "Mycoplasma Phage", "Tobacco Mosaic Virus", "Orchid Fleck Virus", "Rudivirus", 
+                "African Swine Fever", "Chandipura Virus", "Entomopoxvirus", "Hartmannella Virus", "Tobacco Rattle Virus", 
+                "Densonucleosis Virus", "Lettuce Necrotic Virus", "Wolbachia Phage", "Insect Iridovirus", "Baculovirus", 
+                "Spiroplasma Phage", "Cholera Phage", "Cyprinid Herpesvirus", "Infectious Salmon Anemia", "VHS Virus", 
                 "Mimivirus", "Halovirus", "Thermoproteus Virus", "Ranavirus", "Nimavirus", "Potato Virus X", 
                 "Mushroom Bacilliform", "Lipothrixvirus", "Molluscum Contagiosum", "Inovirus", "Bourbon Virus", 
-                "Alkhurma Virus", "Guanarito Virus", "Junin Virus", "Sabiá Virus", "Omsk Hemorrhagic Fever"
+                "Alkhurma Virus", "Guanarito Virus", "Junin Virus", "Sabiá Virus", "Omsk Hemorrhagic Fever", "Kyasanur Disease"
             ];
 
             const traits = { trans: ["air", "vector", "contact", "water"], shape: ["icosa", "helical", "complex", "bullet", "filament"], env: ["naked", "enveloped"], genome: ["dna", "rna"] };
@@ -259,48 +312,67 @@
                 allCombos.push({ key: `${t}_${s}_${e}_${g}`, score: calculateRisk({trans:t, shape:s, env:e, genome:g}).score });
             }))));
 
+            // Sort by highest lethality
             allCombos.sort((a, b) => b.score - a.score);
 
-            let unclassifiedCount = 0;
-            allCombos.forEach(c => {
-                if (unclassifiedCount < 16 && !EXACT_MATCHES[c.key]) {
-                    UNCLASSIFIED_KEYS.push(c.key);
-                    unclassifiedCount++;
+            // Ensure COVID-19 stays in the classified list so people can organically discover it
+            const covidIndex = allCombos.findIndex(c => c.key === 'air_icosa_enveloped_rna');
+            if (covidIndex > -1 && covidIndex < 16) {
+                const temp = allCombos[covidIndex];
+                allCombos[covidIndex] = allCombos[16];
+                allCombos[16] = temp;
+            }
+
+            // Lock the top 16 highest scoring combinations away
+            for(let i=0; i<16; i++) {
+                UNCLASSIFIED_KEYS.push(allCombos[i].key);
+            }
+
+            // Build the database of 64 perfectly specific, real-world viruses
+            let safeCombos = allCombos.slice(16);
+            safeCombos.forEach(c => {
+                if (EXACT_MATCHES[c.key]) {
+                    CLASSIFIED_DB[c.key] = EXACT_MATCHES[c.key];
                 } else {
-                    if (EXACT_MATCHES[c.key]) {
-                        CLASSIFIED_DB[c.key] = EXACT_MATCHES[c.key];
-                    } else {
-                        let exactRealName = REMAINING_NAMES.shift() || "Classified Viral Agent";
-                        CLASSIFIED_DB[c.key] = {
-                            name: exactRealName,
-                            desc: "Classified bio-agent. Structural analysis indicates pathogenic viability within known parameters. Maintained in database for predictive modeling."
-                        };
-                    }
+                    let exactRealName = REMAINING_NAMES.shift() || "Classified Viral Agent";
+                    CLASSIFIED_DB[c.key] = {
+                        name: exactRealName,
+                        desc: "Classified bio-agent. Structural analysis indicates pathogenic viability within known parameters. Maintained in database for predictive modeling."
+                    };
                 }
             });
         }
         initializeSystem();
 
-        // --- SCENE & LIGHTING ---
-        const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05070a, 0.04);
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100); camera.position.z = 12;
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-        renderer.setSize(window.innerWidth, window.innerHeight); document.getElementById('canvas-container').appendChild(renderer.domElement);
-        const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.05; controls.autoRotate = true; controls.autoRotateSpeed = 0.8;
-        scene.add(new THREE.AmbientLight(0xffffff, 0.1));
-        const kL = new THREE.DirectionalLight(0xffffff, 1.5); kL.position.set(5,5,10); scene.add(kL);
-        const rL = new THREE.SpotLight(0x00f0ff, 8); rL.position.set(-10,5,-10); rL.lookAt(0,0,0); scene.add(rL);
-        const fL = new THREE.PointLight(0xff0055, 1); fL.position.set(5,-10,5); scene.add(fL);
-        const virusGroup = new THREE.Group(); scene.add(virusGroup);
+        // --- V24 EXACT SCENE & LIGHTING (UNTOUCHED) ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x05070a, 0.04);
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
+        camera.position.z = 12;
         
-        // --- EXACT V20 MATERIALS RESTORED ---
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.05; controls.autoRotate = true; controls.autoRotateSpeed = 0.8;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); keyLight.position.set(5, 5, 10); scene.add(keyLight);
+        const rimLight = new THREE.SpotLight(0x00f0ff, 8); rimLight.position.set(-10, 5, -10); rimLight.lookAt(0,0,0); scene.add(rimLight);
+        const fillLight = new THREE.PointLight(0xff0055, 1); fillLight.position.set(5, -10, 5); scene.add(fillLight);
+
+        const virusGroup = new THREE.Group();
+        scene.add(virusGroup);
+
         const matCapsid = new THREE.MeshStandardMaterial({ color: 0x2a3b4c, roughness: 0.5, metalness: 0.4 });
         const matEnv = new THREE.MeshPhysicalMaterial({ color: 0x88ccff, transparent: true, opacity: 0.25, transmission: 0.4, roughness: 0.2, clearcoat: 1.0, side: THREE.DoubleSide, depthWrite: false });
-        const matSpike = new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.5 }); // Neon Red Spikes
+        const matSpike = new THREE.MeshStandardMaterial({ color: 0xff0055, roughness: 0.5 });
         const matDNA = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true }); 
         const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true });
 
-        // --- EXACT V20 GEOMETRY RESTORED ---
+        // --- V24 EXACT MODEL BUILDER (UNTOUCHED) ---
         window.updateModel = function() {
             while(virusGroup.children.length > 0) virusGroup.remove(virusGroup.children[0]);
             
@@ -308,14 +380,12 @@
             const env = document.getElementById('envelope').value;
             const genome = document.getElementById('genome').value;
 
-            // Genome
             const gMat = (genome === 'dna') ? matDNA : matRNA;
             const coil = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.15, 100, 16), gMat);
             if(shape==='filament') { coil.scale.set(0.3,0.3,1.5); coil.position.x=0; } 
             else if(shape!=='complex') { coil.scale.set(0.5,0.5,2.0); coil.rotation.y=Math.PI/2; }
             if(shape!=='complex') virusGroup.add(coil);
 
-            // Capsid & Envelope
             let coreGeo, envGeo;
             if(shape === 'filament') {
                 class WormCurve extends THREE.Curve { getPoint(t) { return new THREE.Vector3( (t-0.5)*10, Math.sin(t*Math.PI*3)*1.5, Math.cos(t*Math.PI*2)*0.5 ); } }
@@ -324,7 +394,6 @@
                 envGeo = new THREE.TubeGeometry(path, 64, 1.0, 16, false); 
             }
             else if(shape === 'complex') {
-                // RESTORED COMPLEX BACTERIOPHAGE GEOMETRY
                 const group = new THREE.Group();
                 const h = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1), matCapsid); h.position.y=1.5;
                 const t = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,2.5), matCapsid); t.position.y=-0.5;
@@ -344,7 +413,6 @@
             if(shape !== 'complex') { virusGroup.add(new THREE.Mesh(coreGeo, matCapsid)); }
             if(env === 'enveloped' && shape !== 'complex') { virusGroup.add(new THREE.Mesh(envGeo, matEnv)); }
 
-            // RESTORED SPIKES
             if(env === 'enveloped') {
                 const count = (shape==='filament') ? 100 : 70;
                 for(let i=0; i<count; i++) {
@@ -408,7 +476,7 @@
             
             const bar = document.getElementById('risk-bar');
             bar.className = "progress-fill " + risk.color;
-            setTimeout(() => { bar.style.width = risk.score + "%"; }, 100);
+            setTimeout(() => { bar.style.width = Math.min(risk.score, 100) + "%"; }, 100);
 
             const overlay = document.getElementById('overlay');
             const statusText = document.getElementById('status-text');
@@ -420,6 +488,7 @@
             shareCont.style.display = 'none';
 
             if(!isUnclassified) {
+                // Guaranteed to pull an exact real-world virus name from the secure DB
                 const identity = CLASSIFIED_DB[key];
                 indicator.className = "status-dot dot-match";
                 statusText.innerText = "DATABASE MATCH: CLASSIFIED VIRUS";
@@ -438,6 +507,7 @@
             overlay.style.display = 'flex';
         };
 
+        // --- 3. LIVE JSONBIN GLOBAL LOG (WITH USER CREDENTIALS) ---
         window.saveNewVirus = function() {
             const name = document.getElementById('virus-name-input').value;
             if(!name) return;
@@ -447,7 +517,7 @@
             .then(res => res.json())
             .then(data => {
                 let vault = data.record || [];
-                if(!Array.isArray(vault)) vault = [];
+                if (!Array.isArray(vault)) vault = [];
                 vault.push({ name: name, config: currentConfig });
                 
                 fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
@@ -456,7 +526,7 @@
                     body: JSON.stringify(vault)
                 }).then(() => renderVault());
             })
-            .catch(err => console.error("Sync Error: ", err));
+            .catch(err => console.error("Sync Error:", err));
 
             document.getElementById('discovery-form').style.display = 'none';
             document.getElementById('share-btn-container').style.display = 'block';
@@ -469,12 +539,12 @@
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } })
             .then(res => res.json())
             .then(data => {
-                let record = data.record || [];
-                if(!Array.isArray(record)) record = [];
-                
+                let vault = data.record || [];
+                if (!Array.isArray(vault)) vault = [];
                 list.innerHTML = "";
-                record.slice().reverse().forEach((v) => {
-                    if(v.name === "INITIAL_BOOT") return;
+                // Render newest at top
+                vault.slice().reverse().forEach((v) => {
+                    if (v.name === "INITIAL_BOOT") return;
                     const item = document.createElement('div');
                     item.className = 'vault-item';
                     const rLvl = calculateRisk(v.config).level;
@@ -483,7 +553,7 @@
                     list.appendChild(item);
                 });
             })
-            .catch(err => console.error("Load Error: ", err));
+            .catch(err => console.error("Load Error:", err));
         };
 
         window.loadVirus = function(config) {
@@ -494,6 +564,7 @@
             updateModel();
         };
 
+        // --- 4. SHARE TEXT FIX ---
         window.shareToSocials = async function() {
             const canvas = document.querySelector('canvas');
             const dataUrl = canvas.toDataURL('image/png');
