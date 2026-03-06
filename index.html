@@ -103,7 +103,20 @@
         .dot-match { background: #00f0ff; box-shadow: 0 0 15px #00f0ff; }
         .dot-new { background: #ff0055; box-shadow: 0 0 15px #ff0055; }
         #res-title { font-family: 'Rajdhani', sans-serif; font-size: 50px; color: #fff; margin: 0 0 20px 0; font-weight: 700; text-transform: uppercase; }
-        #res-desc { color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 30px; border-left: 2px solid #333; padding-left: 20px; }
+        
+        /* UPDATED VIBE FOR RESULTS TEXT */
+        #res-desc { 
+            color: #fff; 
+            font-size: 16px; 
+            line-height: 1.6; 
+            margin-bottom: 30px; 
+            border-left: 3px solid #00f0ff; 
+            padding: 15px 20px; 
+            background: rgba(0, 240, 255, 0.05); 
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4); 
+            font-weight: 600; 
+            letter-spacing: 1px;
+        }
 
         /* RISK METER */
         #risk-container { background: #05070a; padding: 25px; margin-bottom: 25px; border: 1px solid #222; }
@@ -235,41 +248,18 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // ==========================================
-        // 1. PUBLIC JSONBIN CREDENTIALS (LIVE)
-        // ==========================================
+        // --- JSONBIN GLOBAL SYNC KEYS ---
         const BIN_ID = "69ab2c49ae596e708f66e736";
         const API_KEY = "$2a$10$4jgoINdTRJ5rYCDsDrIm0u/VeJyFkSt/dzyVWFVARBOtTp5tEBQay";
 
-        // ==========================================
-        // 2. EXACT 64/16 CLASSIFICATION ENGINE
-        // ==========================================
-        let UNCLASSIFIED_KEYS = []; 
-        let CLASSIFIED_DB = {}; 
-
-        // V24 EXACT MATH ENGINE
+        // --- MATH FIXED RISK ENGINE ---
         function calculateRisk(user) {
             let score = 0; let bsl = "BSL-2"; let r0 = 1.2;
-            
-            // MAX TRANS = 45
-            if(user.trans === 'air') { score+=45; r0=4.8; bsl="BSL-3"; } 
-            else if(user.trans === 'water') { score+=25; r0=2.5; } 
-            else if(user.trans === 'vector') { score+=15; r0=1.5; } 
-            else { score+=5; r0=1.1; }
-            
-            // MAX GENOME = 25
+            if(user.trans === 'air') { score+=45; r0=4.8; bsl="BSL-3"; } else if(user.trans === 'water') { score+=25; r0=2.5; } else if(user.trans === 'vector') { score+=15; r0=1.5; } else { score+=5; r0=1.1; }
             if(user.genome === 'rna') { score+=25; } else { score+=5; }
-            
-            // MAX SHAPE = 15
-            if(user.shape === 'filament') { score+=15; bsl="BSL-4"; } 
-            else if(user.shape === 'complex') { score+=10; } 
-            else if(user.shape === 'bullet') { score+=8; }
-            else { score+=5; }
-            
-            // MAX ENVELOPE = 15
+            if(user.shape === 'filament') { score+=15; bsl="BSL-4"; } else if(user.shape === 'complex') { score+=10; } else if(user.shape === 'bullet') { score+=8; } else { score+=5; }
             if(user.env === 'naked') { score+=15; } else { score+=5; }
 
-            // TOTAL POSSIBLE MAX = 45 + 25 + 15 + 15 = 100
             let level = "LOW YIELD"; let color = "color-low";
             if(score >= 45) { level = "MODERATE THREAT"; color = "color-med"; }
             if(score >= 70) { level = "SEVERE THREAT"; color = "color-sev"; }
@@ -278,73 +268,7 @@
             return { score, level, color, r0, bsl };
         }
 
-        function initializeSystem() {
-            // Famous exact 1-to-1 matches to ensure lore accuracy
-            const EXACT_MATCHES = {
-                "air_icosa_enveloped_rna": { name: "SARS-CoV-2", desc: "Agent of COVID-19. Spike proteins facilitate entry into ACE2 receptors. High aerosol stability." },
-                "contact_filament_enveloped_rna": { name: "Ebolavirus", desc: "Causes severe hemorrhagic fever. Extreme lethality due to systemic vascular damage." },
-                "contact_bullet_enveloped_rna": { name: "Rabies Lyssavirus", desc: "Neurotropic virus. Fatal once symptomatic. High affinity for neural tissue." },
-                "vector_icosa_enveloped_rna": { name: "Dengue Virus", desc: "Mosquito-borne flavivirus. Causes high fever and hemorrhagic complications." },
-                "water_icosa_naked_rna": { name: "Poliovirus", desc: "Fecal-oral transmission. Invades central nervous system; highly resistant capsid." },
-                "contact_icosa_enveloped_dna": { name: "Herpes Simplex", desc: "Lifelong latency in sensory neurons. Characterized by periodic reactivation." },
-                "air_complex_enveloped_dna": { name: "Variola (Smallpox)", desc: "Brick-shaped complex DNA virus. Historically one of earth's deadliest agents." }
-            };
-
-            // Exactly enough real virus names to fill out the rest of the 64 classified list
-            let REMAINING_NAMES = [
-                "Marburg Marburgvirus", "Lassa Virus", "Nipah Virus", "Hendra Virus", "Machupo Virus", "Crimean-Congo Virus", 
-                "Yellow Fever Virus", "Zika Virus", "Chikungunya Virus", "Hantavirus", "Hepatitis C", "Measles Morbillivirus", 
-                "Mumps Orthorubulavirus", "Rubella Virus", "Respiratory Syncytial Virus", "Norovirus", "Rotavirus", "Astrovirus", 
-                "Cytomegalovirus", "Epstein-Barr", "Varicella Zoster", "Parvovirus B19", "Coxsackievirus", "Enterovirus D68", 
-                "Echovirus", "West Nile Virus", "Japanese Encephalitis", "Tick-borne Encephalitis", "Colorado Tick Fever", 
-                "Bacteriophage T4", "Mycoplasma Phage", "Tobacco Mosaic Virus", "Orchid Fleck Virus", "Rudivirus", 
-                "African Swine Fever", "Chandipura Virus", "Entomopoxvirus", "Hartmannella Virus", "Tobacco Rattle Virus", 
-                "Densonucleosis Virus", "Lettuce Necrotic Virus", "Wolbachia Phage", "Insect Iridovirus", "Baculovirus", 
-                "Spiroplasma Phage", "Cholera Phage", "Cyprinid Herpesvirus", "Infectious Salmon Anemia", "VHS Virus", 
-                "Mimivirus", "Halovirus", "Thermoproteus Virus", "Ranavirus", "Nimavirus", "Potato Virus X", 
-                "Mushroom Bacilliform", "Lipothrixvirus", "Molluscum Contagiosum", "Inovirus", "Bourbon Virus", 
-                "Alkhurma Virus", "Guanarito Virus", "Junin Virus", "Sabiá Virus", "Omsk Hemorrhagic Fever", "Kyasanur Disease"
-            ];
-
-            const traits = { trans: ["air", "vector", "contact", "water"], shape: ["icosa", "helical", "complex", "bullet", "filament"], env: ["naked", "enveloped"], genome: ["dna", "rna"] };
-            let allCombos = [];
-            traits.trans.forEach(t => traits.shape.forEach(s => traits.env.forEach(e => traits.genome.forEach(g => {
-                allCombos.push({ key: `${t}_${s}_${e}_${g}`, score: calculateRisk({trans:t, shape:s, env:e, genome:g}).score });
-            }))));
-
-            // Sort by highest lethality
-            allCombos.sort((a, b) => b.score - a.score);
-
-            // Ensure COVID-19 stays in the classified list so people can organically discover it
-            const covidIndex = allCombos.findIndex(c => c.key === 'air_icosa_enveloped_rna');
-            if (covidIndex > -1 && covidIndex < 16) {
-                const temp = allCombos[covidIndex];
-                allCombos[covidIndex] = allCombos[16];
-                allCombos[16] = temp;
-            }
-
-            // Lock the top 16 highest scoring combinations away
-            for(let i=0; i<16; i++) {
-                UNCLASSIFIED_KEYS.push(allCombos[i].key);
-            }
-
-            // Build the database of 64 perfectly specific, real-world viruses
-            let safeCombos = allCombos.slice(16);
-            safeCombos.forEach(c => {
-                if (EXACT_MATCHES[c.key]) {
-                    CLASSIFIED_DB[c.key] = EXACT_MATCHES[c.key];
-                } else {
-                    let exactRealName = REMAINING_NAMES.shift() || "Classified Viral Agent";
-                    CLASSIFIED_DB[c.key] = {
-                        name: exactRealName,
-                        desc: "Classified bio-agent. Structural analysis indicates pathogenic viability within known parameters. Maintained in database for predictive modeling."
-                    };
-                }
-            });
-        }
-        initializeSystem();
-
-        // --- V24 EXACT SCENE & LIGHTING (UNTOUCHED) ---
+        // --- SCENE & LIGHTING (V24 EXACT) ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x05070a, 0.04);
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
@@ -372,7 +296,7 @@
         const matDNA = new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true }); 
         const matRNA = new THREE.MeshBasicMaterial({ color: 0xffaa00, wireframe: true });
 
-        // --- V24 EXACT MODEL BUILDER (UNTOUCHED) ---
+        // --- MODEL BUILDER (V24 EXACT) ---
         window.updateModel = function() {
             while(virusGroup.children.length > 0) virusGroup.remove(virusGroup.children[0]);
             
@@ -456,12 +380,12 @@
         let currentConfig = {};
         let newlyDiscoveredName = ""; 
 
+        // --- HARDCODED 80 IF/ELSE LOGIC ENGINE ---
         window.analyzeVirus = function() {
             const user = { trans: document.getElementById('trans').value, shape: document.getElementById('shape').value, env: document.getElementById('envelope').value, genome: document.getElementById('genome').value };
             currentConfig = user; controls.autoRotate = false;
 
             const key = `${user.trans}_${user.shape}_${user.env}_${user.genome}`;
-            const isUnclassified = UNCLASSIFIED_KEYS.includes(key);
             const risk = calculateRisk(user);
 
             document.getElementById('risk-val-text').innerText = risk.level;
@@ -484,17 +408,109 @@
             const form = document.getElementById('discovery-form');
             const matchBtns = document.getElementById('match-buttons');
             const shareCont = document.getElementById('share-btn-container');
-            
             shareCont.style.display = 'none';
 
+            let isUnclassified = false;
+            let vName = "";
+            let vDesc = "";
+
+            // EXACTLY 80 IF-ELSE STATEMENTS
+            // --- 16 UNCLASSIFIED ---
+            if      (key === "air_filament_naked_rna") { isUnclassified = true; } // Score: 100
+            else if (key === "air_complex_naked_rna") { isUnclassified = true; } // Score: 95
+            else if (key === "air_bullet_naked_rna") { isUnclassified = true; } // Score: 93
+            else if (key === "air_icosa_naked_rna") { isUnclassified = true; } // Score: 90
+            else if (key === "air_helical_naked_rna") { isUnclassified = true; } // Score: 90
+            else if (key === "air_filament_enveloped_rna") { isUnclassified = true; } // Score: 90
+            else if (key === "air_complex_enveloped_rna") { isUnclassified = true; } // Score: 85
+            else if (key === "air_bullet_enveloped_rna") { isUnclassified = true; } // Score: 83
+            else if (key === "air_filament_naked_dna") { isUnclassified = true; } // Score: 80
+            else if (key === "water_filament_naked_rna") { isUnclassified = true; } // Score: 80
+            else if (key === "air_complex_naked_dna") { isUnclassified = true; } // Score: 75
+            else if (key === "water_complex_naked_rna") { isUnclassified = true; } // Score: 75
+            else if (key === "air_bullet_naked_dna") { isUnclassified = true; } // Score: 73
+            else if (key === "water_bullet_naked_rna") { isUnclassified = true; } // Score: 73
+            else if (key === "vector_filament_naked_rna") { isUnclassified = true; } // Score: 70
+            else if (key === "water_filament_enveloped_rna") { isUnclassified = true; } // Score: 70
+            
+            // --- 64 CLASSIFIED (AIR) ---
+            else if (key === "air_icosa_enveloped_rna") { vName = "SARS-CoV-2"; vDesc = "Agent of COVID-19. Spike proteins facilitate entry into ACE2 receptors. High aerosol stability."; }
+            else if (key === "air_helical_enveloped_rna") { vName = "Influenza A"; vDesc = "Segmented RNA virus capable of rapid mutation (antigenic drift)."; }
+            else if (key === "air_icosa_naked_dna") { vName = "Adenovirus"; vDesc = "Robust pathogen causing respiratory infections. High environmental resistance."; }
+            else if (key === "air_complex_enveloped_dna") { vName = "Variola (Smallpox)"; vDesc = "Brick-shaped complex DNA virus. Historically one of earth's deadliest agents. Eradicated globally."; }
+            else if (key === "air_icosa_enveloped_dna") { vName = "Cytomegalovirus"; vDesc = "Widespread betaherpesvirus causing pneumonia and systemic infection."; }
+            else if (key === "air_helical_naked_dna") { vName = "Microviridae Phage"; vDesc = "Airborne single-stranded DNA bacteriophage."; }
+            else if (key === "air_helical_enveloped_dna") { vName = "Thermoproteus Tenax Virus"; vDesc = "Hyperthermophilic archaeal virus surviving in extreme atmospheric environments."; }
+            else if (key === "air_bullet_enveloped_dna") { vName = "Bovine Ephemeral Fever Virus"; vDesc = "Unusual structural-variant DNA pathogen. Monitored for zoonotic potential."; }
+            else if (key === "air_filament_enveloped_dna") { vName = "Lipothrixvirus"; vDesc = "Archaeal virus with a unique enveloped filamentous structure."; }
+            
+            // --- 64 CLASSIFIED (WATER) ---
+            else if (key === "water_icosa_naked_rna") { vName = "Poliovirus"; vDesc = "Fecal-oral transmission. Invades central nervous system; highly resistant naked capsid."; }
+            else if (key === "water_icosa_enveloped_rna") { vName = "Hepatitis E Virus"; vDesc = "Waterborne liver infection. Displays enveloped structure in blood circulation."; }
+            else if (key === "water_icosa_naked_dna") { vName = "Hepatitis A Virus"; vDesc = "Highly contagious liver infection transmitted via contaminated water sources."; }
+            else if (key === "water_icosa_enveloped_dna") { vName = "Cyprinid Herpesvirus 3"; vDesc = "Highly contagious herpesvirus causing koi sleepy disease in aquatic environments."; }
+            else if (key === "water_helical_naked_rna") { vName = "Tobacco Mosaic Virus"; vDesc = "Rigid rod-shaped plant virus. The first virus ever discovered."; }
+            else if (key === "water_helical_enveloped_rna") { vName = "Infectious Salmon Anemia Virus"; vDesc = "Orthomyxovirus causing severe disease in farmed Atlantic salmon."; }
+            else if (key === "water_helical_naked_dna") { vName = "Spiroplasma Phage"; vDesc = "Naked helical DNA virus targeting aquatic spirochete bacteria."; }
+            else if (key === "water_helical_enveloped_dna") { vName = "White Spot Syndrome Virus"; vDesc = "Lethal aquatic pathogen heavily impacting global crustacean aquaculture."; }
+            else if (key === "water_complex_enveloped_rna") { vName = "Gill-Associated Virus"; vDesc = "Complex RNA virus causing severe respiratory distress in marine life."; }
+            else if (key === "water_complex_naked_dna") { vName = "Cholera Phage"; vDesc = "Bacteriophage that hunts Vibrio cholerae in contaminated water."; }
+            else if (key === "water_complex_enveloped_dna") { vName = "Ranavirus"; vDesc = "Large iridovirus causing systemic infections in amphibians and reptiles."; }
+            else if (key === "water_bullet_enveloped_rna") { vName = "Viral Hemorrhagic Septicemia"; vDesc = "Rhabdovirus affecting multiple species of freshwater and marine fish."; }
+            else if (key === "water_bullet_naked_dna") { vName = "Penaeid Shrimp Virus"; vDesc = "Highly persistent naked DNA pathogen devastating aquaculture habitats."; }
+            else if (key === "water_bullet_enveloped_dna") { vName = "Spring Viremia of Carp Virus"; vDesc = "Rhabdovirus causing acute hemorrhagic disease in cold freshwater fish."; }
+            else if (key === "water_filament_naked_dna") { vName = "Vibrio Phage CTX"; vDesc = "Filamentous virus that encodes the cholera toxin in marine environments."; }
+            else if (key === "water_filament_enveloped_dna") { vName = "Halovirus"; vDesc = "Extremophilic DNA virus maintaining stability in hypersaline water systems."; }
+            
+            // --- 64 CLASSIFIED (VECTOR) ---
+            else if (key === "vector_icosa_naked_rna") { vName = "Nodavirus"; vDesc = "Small, hardy RNA virus transmitted by arthropods, affecting aquatic invertebrates."; }
+            else if (key === "vector_icosa_enveloped_rna") { vName = "Dengue Virus"; vDesc = "Mosquito-borne flavivirus. Causes high fever and hemorrhagic complications."; }
+            else if (key === "vector_icosa_naked_dna") { vName = "Densonucleosis Virus"; vDesc = "Parvovirus heavily impacting insect populations. Used as a bio-pesticide."; }
+            else if (key === "vector_icosa_enveloped_dna") { vName = "African Swine Fever Virus"; vDesc = "Giant DNA virus spread by soft ticks. Highly lethal to swine."; }
+            else if (key === "vector_helical_naked_rna") { vName = "Rice Stripe Virus"; vDesc = "Nematode-transmitted helical RNA virus causing severe crop blights."; }
+            else if (key === "vector_helical_enveloped_rna") { vName = "Rift Valley Fever Virus"; vDesc = "Phlebovirus affecting livestock and humans. Transmitted by mosquitoes."; }
+            else if (key === "vector_helical_naked_dna") { vName = "Banana Streak Virus"; vDesc = "Devastating agricultural DNA virus dependent on mealybug transmission."; }
+            else if (key === "vector_helical_enveloped_dna") { vName = "Maize Mosaic Virus"; vDesc = "Plant rhabdovirus transmitted specifically by planthoppers."; }
+            else if (key === "vector_complex_naked_rna") { vName = "Nudaurelia Capensis Virus"; vDesc = "Complex insect virus utilizing unique non-enveloped capsid geometry."; }
+            else if (key === "vector_complex_enveloped_rna") { vName = "Tomato Spotted Wilt Virus"; vDesc = "Thrips-transmitted complex RNA virus affecting hundreds of plant species."; }
+            else if (key === "vector_complex_naked_dna") { vName = "Entomopoxvirus"; vDesc = "Insect-specific poxvirus characterized by complex occlusion bodies."; }
+            else if (key === "vector_complex_enveloped_dna") { vName = "Myxoma Virus"; vDesc = "Poxvirus causing severe disease in rabbits, vector-borne transmission."; }
+            else if (key === "vector_bullet_naked_rna") { vName = "Maize Fine Streak Virus"; vDesc = "Plant-infecting tenuivirus spread by leafhoppers."; }
+            else if (key === "vector_bullet_enveloped_rna") { vName = "Chandipura Virus"; vDesc = "Rhabdovirus transmitted by sandflies. Causes rapid-onset encephalitis."; }
+            else if (key === "vector_bullet_naked_dna") { vName = "Potato Yellow Dwarf Virus"; vDesc = "Agriculturally significant pathogen causing systemic necrosis in solanaceous crops."; }
+            else if (key === "vector_bullet_enveloped_dna") { vName = "Alkhurma Hemorrhagic Fever Virus"; vDesc = "Tick-borne pathogen causing severe vascular leakage and coagulation defects."; }
+            else if (key === "vector_filament_enveloped_rna") { vName = "Bourbon Virus"; vDesc = "Tick-borne thogotovirus discovered in the midwestern United States."; }
+            else if (key === "vector_filament_naked_dna") { vName = "Fiji Disease Virus"; vDesc = "Planthopper-transmitted pathogen causing severe stunting in sugarcane crops."; }
+            else if (key === "vector_filament_enveloped_dna") { vName = "Kyasanur Forest Disease Virus"; vDesc = "Tick-borne pathogen endemic to India, causing biphasic hemorrhagic fever."; }
+
+            // --- 64 CLASSIFIED (CONTACT) ---
+            else if (key === "contact_icosa_naked_rna") { vName = "Rhinovirus C"; vDesc = "Common contact-transmitted picornavirus responsible for respiratory illness."; }
+            else if (key === "contact_icosa_enveloped_rna") { vName = "HIV-1"; vDesc = "Lentivirus that attacks the immune system (CD4+ T cells) and integrates into host DNA."; }
+            else if (key === "contact_icosa_naked_dna") { vName = "Human Papillomavirus (HPV)"; vDesc = "Transmitted via skin-to-skin contact. Capable of causing cellular mutations."; }
+            else if (key === "contact_icosa_enveloped_dna") { vName = "Herpes Simplex"; vDesc = "Lifelong latency in sensory neurons. Characterized by periodic reactivation."; }
+            else if (key === "contact_helical_naked_rna") { vName = "Tobacco Rattle Virus"; vDesc = "Plant virus characterized by stiff helical rods, affecting tubers."; }
+            else if (key === "contact_helical_enveloped_rna") { vName = "Nipah Virus"; vDesc = "Zoonotic paramyxovirus causing acute respiratory infection and fatal encephalitis."; }
+            else if (key === "contact_helical_naked_dna") { vName = "M13 Bacteriophage"; vDesc = "Model filamentous phage widely used in recombinant DNA engineering."; }
+            else if (key === "contact_helical_enveloped_dna") { vName = "Lassa Virus"; vDesc = "Rodent-borne arenavirus capable of secondary human-to-human transmission."; }
+            else if (key === "contact_complex_naked_rna") { vName = "Omsk Hemorrhagic Fever Virus"; vDesc = "Flavivirus transmitted via handling infected aquatic mammals."; }
+            else if (key === "contact_complex_enveloped_rna") { vName = "Torovirus"; vDesc = "Gastrointestinal pathogen with tightly coiled, complex nucleocapsid."; }
+            else if (key === "contact_complex_naked_dna") { vName = "Bacteriophage T4"; vDesc = "Complex virus specifically targeting bacteria. Non-pathogenic to humans."; }
+            else if (key === "contact_complex_enveloped_dna") { vName = "Monkeypox Virus"; vDesc = "Zoonotic orthopoxvirus causing symptomatic dermal lesions."; }
+            else if (key === "contact_bullet_naked_rna") { vName = "Lettuce Necrotic Yellows Virus"; vDesc = "Plant rhabdovirus affecting agricultural crops via contact transmission."; }
+            else if (key === "contact_bullet_enveloped_rna") { vName = "Rabies Lyssavirus"; vDesc = "Neurotropic virus traveling along neural pathways to the brain. Fatal once symptomatic."; }
+            else if (key === "contact_bullet_naked_dna") { vName = "Orchid Fleck Virus"; vDesc = "Pathogen inducing localized necrotic lesions, heavily impacting plant nurseries."; }
+            else if (key === "contact_bullet_enveloped_dna") { vName = "Guanarito Virus"; vDesc = "South American arenavirus causing severe Venezuelan hemorrhagic fever."; }
+            else if (key === "contact_filament_naked_rna") { vName = "Marburg Marburgvirus"; vDesc = "Highly virulent filovirus causing severe hemorrhagic manifestations."; }
+            else if (key === "contact_filament_enveloped_rna") { vName = "Ebolavirus"; vDesc = "A filovirus causing severe hemorrhagic fever. High lethality due to systemic vascular damage."; }
+            else if (key === "contact_filament_naked_dna") { vName = "Inovirus"; vDesc = "Filamentous bacteriophage capable of chronic bacterial infection without lysis."; }
+            else if (key === "contact_filament_enveloped_dna") { vName = "Hantavirus"; vDesc = "Zoonotic agent inducing severe pulmonary or renal syndromes upon contact."; }
+
             if(!isUnclassified) {
-                // Guaranteed to pull an exact real-world virus name from the secure DB
-                const identity = CLASSIFIED_DB[key];
                 indicator.className = "status-dot dot-match";
                 statusText.innerText = "DATABASE MATCH: CLASSIFIED VIRUS";
                 statusText.style.color = "#00f0ff";
-                document.getElementById('res-title').innerText = identity.name;
-                document.getElementById('res-desc').innerText = identity.desc;
+                document.getElementById('res-title').innerText = vName;
+                document.getElementById('res-desc').innerText = vDesc;
                 form.style.display = 'none'; matchBtns.style.display = 'flex';
             } else {
                 indicator.className = "status-dot dot-new";
@@ -507,7 +523,7 @@
             overlay.style.display = 'flex';
         };
 
-        // --- 3. LIVE JSONBIN GLOBAL LOG (WITH USER CREDENTIALS) ---
+        // --- PUBLIC JSONBIN GLOBAL SYNC ---
         window.saveNewVirus = function() {
             const name = document.getElementById('virus-name-input').value;
             if(!name) return;
@@ -526,7 +542,7 @@
                     body: JSON.stringify(vault)
                 }).then(() => renderVault());
             })
-            .catch(err => console.error("Sync Error:", err));
+            .catch(err => console.error("Sync Error: ", err));
 
             document.getElementById('discovery-form').style.display = 'none';
             document.getElementById('share-btn-container').style.display = 'block';
@@ -539,11 +555,11 @@
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } })
             .then(res => res.json())
             .then(data => {
-                let vault = data.record || [];
-                if (!Array.isArray(vault)) vault = [];
+                let record = data.record || [];
+                if (!Array.isArray(record)) record = [];
+                
                 list.innerHTML = "";
-                // Render newest at top
-                vault.slice().reverse().forEach((v) => {
+                record.slice().reverse().forEach((v) => {
                     if (v.name === "INITIAL_BOOT") return;
                     const item = document.createElement('div');
                     item.className = 'vault-item';
@@ -553,7 +569,7 @@
                     list.appendChild(item);
                 });
             })
-            .catch(err => console.error("Load Error:", err));
+            .catch(err => console.error("Load Error: ", err));
         };
 
         window.loadVirus = function(config) {
@@ -564,7 +580,7 @@
             updateModel();
         };
 
-        // --- 4. SHARE TEXT FIX ---
+        // --- SOCIAL SHARING ---
         window.shareToSocials = async function() {
             const canvas = document.querySelector('canvas');
             const dataUrl = canvas.toDataURL('image/png');
